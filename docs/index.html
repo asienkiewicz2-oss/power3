@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wartości Lidera — Values Explorer</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--gold:#C5A55A;--navy:#1B2A4A;--bg:#0F1923;--card:#1A2736;--card2:#1F2F42;--text:#E8E0D0;--muted:#8A9BB0;--border:rgba(197,165,90,0.2);--red:#CD5C5C;--teal:#2E8B8B;--heat:#E8820C}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+.hidden{display:none!important}
+.top-nav{position:fixed;top:0;left:0;right:0;z-index:500;background:rgba(15,25,35,.95);backdrop-filter:blur(10px);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;height:52px;gap:4px}
+.top-nav .nav-brand{color:var(--gold);font-weight:800;font-size:.85rem;margin-right:16px;white-space:nowrap}
+.nav-btn{background:transparent;border:none;color:var(--muted);font-size:.82rem;font-weight:600;padding:8px 16px;cursor:pointer;border-radius:8px;transition:all .15s;white-space:nowrap}
+.nav-btn:hover{color:var(--text);background:var(--card)}
+.nav-btn.active{color:var(--gold);background:rgba(197,165,90,.1)}
+.p-screen{min-height:100vh;padding:68px 20px 20px;display:flex;flex-direction:column}
+.p-screen.fullscreen{padding-top:52px}
+#startScreen{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+#startScreen h1{font-size:2.8rem;color:var(--gold);font-weight:800;margin-bottom:8px;letter-spacing:-1px}
+#startScreen .subtitle{font-size:1.1rem;color:var(--muted);margin-bottom:40px}
+#startScreen .badge{display:inline-block;background:rgba(197,165,90,.12);color:var(--gold);font-size:.75rem;padding:4px 14px;border-radius:20px;border:1px solid var(--border);margin-bottom:32px}
+.big-btn{background:linear-gradient(135deg,var(--gold),#A08940);color:var(--navy);border:none;padding:18px 48px;font-size:1.15rem;font-weight:700;border-radius:14px;cursor:pointer;transition:all .25s}
+.big-btn:hover{transform:translateY(-3px);box-shadow:0 8px 30px rgba(197,165,90,.35)}
+.big-btn:disabled{opacity:.35;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.secondary-btn{background:var(--card2);color:var(--muted);border:1px solid var(--border);padding:10px 20px;font-size:.85rem;font-weight:600;border-radius:10px;cursor:pointer;transition:all .2s}
+.secondary-btn:hover{border-color:var(--gold);color:var(--gold)}
+.danger-btn{background:rgba(205,92,92,.15);color:var(--red);border:1px solid rgba(205,92,92,.3);padding:14px 32px;font-size:1rem;font-weight:700;border-radius:12px;cursor:pointer;transition:all .2s}
+.danger-btn:hover{background:rgba(205,92,92,.25)}
+.danger-btn:disabled{opacity:.35;cursor:not-allowed}
+.name-input{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px 18px;font-size:1.1rem;color:var(--text);width:100%;max-width:320px;text-align:center;outline:none}
+.name-input:focus{border-color:var(--gold)}.name-input::placeholder{color:var(--muted)}
+.name-input.error{border-color:var(--red);animation:shake .4s}
+.validation-msg{color:var(--red);font-size:.8rem;margin-top:8px;min-height:1.2em}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#canvasPage{padding:0;position:relative;overflow:hidden;padding-top:52px}
+#valuesField{width:100vw;height:calc(100vh - 52px);position:relative;overflow:hidden}
+.scattered-word{position:absolute;font-size:1.15rem;font-weight:600;white-space:nowrap;pointer-events:none;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.heatmap-wrap{width:100%;max-width:750px;margin:0 auto;position:relative}
+.heatmap-wrap svg{width:100%;height:auto}
+.svg-tooltip{position:absolute;background:var(--card);border:1px solid var(--gold);border-radius:10px;padding:12px 16px;pointer-events:none;overflow-y:auto;max-height:400px;opacity:0;transition:opacity .2s;z-index:50;min-width:180px;max-width:260px}
+.svg-tooltip .tt-cat{font-size:.9rem;font-weight:700;margin-bottom:4px}
+.svg-tooltip .tt-dim{font-size:.72rem;color:var(--muted);margin-bottom:6px}
+.svg-tooltip .tt-values{font-size:.78rem;color:var(--text);line-height:1.5}
+.svg-tooltip .tt-count{font-size:1.3rem;font-weight:800;color:var(--gold);margin-top:4px}
+.page-title{font-size:1.5rem;color:var(--gold);text-align:center;margin-bottom:4px}
+.page-sub{font-size:.9rem;color:var(--muted);text-align:center;margin-bottom:16px}
+/* Dashboard */
+.dash-filters{display:flex;align-items:center;gap:16px;justify-content:center;margin-bottom:16px;flex-wrap:wrap}
+.dash-filters label{font-size:.85rem;color:var(--muted);font-weight:600}
+.dash-filters input[type=range]{width:180px;accent-color:var(--gold)}
+.dash-filters .slider-val{font-size:1.6rem;font-weight:900;color:var(--gold);min-width:36px;text-align:center}
+.dim-filter{display:flex;gap:6px;flex-wrap:wrap}
+.dim-chip{padding:5px 12px;border-radius:20px;font-size:.75rem;font-weight:600;cursor:pointer;border:1px solid var(--border);transition:all .15s;user-select:none}
+.dim-chip.on{border-color:var(--gold);color:var(--gold);background:rgba(197,165,90,.12)}
+.dim-chip.off{color:var(--muted);opacity:.5}
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;max-width:1200px;margin:0 auto}
+.dash-card{background:var(--card);border-radius:14px;padding:20px;border:1px solid var(--border);cursor:pointer;transition:all .25s;position:relative}
+.dash-card:hover{border-color:var(--gold);transform:translateY(-2px)}
+.dash-card h3{font-size:.95rem;color:var(--gold);margin-bottom:12px;text-align:center}
+.dash-card.fullcard{grid-column:1/-1}
+.dash-card.expanded{position:fixed;top:52px;left:0;right:0;bottom:0;z-index:200;border-radius:0;overflow-y:auto;cursor:default;transform:none;padding:20px}
+.dash-back{display:none;position:absolute;top:12px;left:12px;z-index:210}
+.dash-card.expanded .dash-back{display:block}
+.ring-small .heatmap-wrap{max-width:680px}
+.bar-row{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.bar-label{font-size:.75rem;color:var(--text);width:140px;text-align:right;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar-track{flex:1;height:22px;background:var(--card2);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;transition:width .5s;display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:.7rem;font-weight:700;color:#fff;min-width:28px}
+/* Admin */
+.admin-tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}
+.admin-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 18px;font-size:.82rem;font-weight:600;border-radius:8px;cursor:pointer;transition:all .15s}
+.admin-tab:hover{color:var(--text)}
+.admin-tab.active{background:rgba(197,165,90,.12);color:var(--gold);border-color:var(--gold)}
+.admin-section{display:none}
+.admin-section.active{display:block}
+#adminQR{text-align:center}
+#adminQR h3{font-size:1.3rem;color:var(--gold);margin-bottom:8px}
+#qrBox{display:inline-block;padding:16px;background:#fff;border-radius:16px;margin:16px 0}
+.room-code{font-size:3rem;font-weight:900;color:var(--gold);letter-spacing:6px;font-family:'Courier New',monospace}
+.people-table{width:100%;border-collapse:collapse;font-size:.85rem}
+.people-table th{text-align:left;color:var(--gold);padding:8px 12px;border-bottom:2px solid var(--border);font-size:.75rem;text-transform:uppercase;letter-spacing:1px}
+.people-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
+.phase-badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:.72rem;font-weight:600}
+.phase-badge.s{background:rgba(46,139,139,.2);color:var(--teal)}
+.phase-badge.r{background:rgba(197,165,90,.15);color:var(--gold)}
+.phase-badge.t{background:rgba(155,89,182,.15);color:#9B59B6}
+.tbl-btn{background:none;border:none;cursor:pointer;font-size:.85rem;padding:4px 8px;border-radius:6px;transition:background .15s}
+.tbl-btn.del{color:var(--red)}.tbl-btn.del:hover{background:rgba(205,92,92,.15)}
+.tbl-btn.edit{color:var(--teal)}.tbl-btn.edit:hover{background:rgba(46,139,139,.15)}
+.team-select{background:var(--card);border:1px solid var(--border);color:var(--text);padding:4px 8px;border-radius:6px;font-size:.78rem}
+.config-row{display:flex;align-items:center;gap:16px;padding:16px 0;border-bottom:1px solid var(--border)}
+.config-row label{font-size:.9rem;flex:1;cursor:pointer;color:var(--text)}
+.config-row input[type=number]{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:10px 14px;font-size:1rem;color:var(--gold);font-weight:700;width:72px;text-align:center;outline:none;-moz-appearance:textfield}
+.config-row input[type=number]:focus{border-color:var(--gold)}
+.config-row input[type=number]::-webkit-inner-spin-button,.config-row input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.toggle-switch{position:relative;width:52px;height:28px;flex-shrink:0}
+.toggle-switch input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;background:var(--card2);border:2px solid var(--border);border-radius:28px;transition:all .25s}
+.toggle-slider:before{content:'';position:absolute;height:20px;width:20px;left:2px;bottom:2px;background:var(--muted);border-radius:50%;transition:all .25s}
+.toggle-switch input:checked+.toggle-slider{background:rgba(197,165,90,.2);border-color:var(--gold)}
+.toggle-switch input:checked+.toggle-slider:before{transform:translateX(24px);background:var(--gold)}
+.teams-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.team-card{background:var(--card);border-radius:14px;padding:20px;border:1px solid var(--border);cursor:pointer;transition:all .2s}
+.team-card:hover{border-color:var(--gold)}
+.team-card h4{color:var(--gold);font-size:1rem;margin-bottom:4px}
+.team-card .team-desc{font-size:.78rem;color:var(--muted);margin-bottom:12px}
+.team-members{font-size:.82rem}
+.team-members div{padding:4px 0;border-bottom:1px solid var(--border)}
+.stat-card{background:var(--card);border-radius:10px;padding:12px 20px;text-align:center;border:1px solid var(--border);min-width:110px;display:inline-block;margin:6px}
+.stat-num{font-size:1.8rem;font-weight:800;color:var(--gold)}
+.stat-label{font-size:.72rem;color:var(--muted);margin-top:2px}
+.reduction-panel{background:var(--card);border-radius:16px;padding:24px;max-width:500px;margin:20px auto;text-align:center;border:1px solid var(--border)}
+.reduction-panel .current-count{font-size:3.5rem;font-weight:900;color:var(--gold);margin:10px 0}
+/* Team detail (admin + student) */
+.team-detail-tabs{display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap}
+.team-detail-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:6px 14px;font-size:.78rem;font-weight:600;border-radius:8px;cursor:pointer}
+.team-detail-tab.active{background:rgba(197,165,90,.12);color:var(--gold);border-color:var(--gold)}
+.bio-text{font-size:.88rem;line-height:1.7;color:var(--text);max-width:750px;margin:0 auto}
+.bio-text h3{color:var(--gold);margin:16px 0 8px}
+/* Student screens */
+.student-screen{min-height:100vh;min-height:100dvh;padding:16px;display:flex;flex-direction:column}
+.student-header{text-align:center;padding:16px 0 12px;border-bottom:2px solid var(--gold);margin-bottom:16px}
+.student-header h1{font-size:1.3rem;color:var(--gold);font-weight:700}
+.student-header .step-info{font-size:.78rem;color:var(--muted);margin-top:4px}
+.student-progress{height:5px;background:var(--card2);border-radius:3px;margin-bottom:16px;overflow:hidden}
+.student-progress-fill{height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:3px;transition:width .4s}
+#studentNameScreen{justify-content:center;align-items:center;text-align:center}
+.selection-instruction{text-align:center;margin-bottom:12px}
+.selection-instruction h2{font-size:1.1rem;color:var(--text);margin-bottom:4px}
+.selection-instruction p{font-size:.82rem;color:var(--muted)}
+.selection-counter{text-align:center;font-size:1.4rem;font-weight:800;color:var(--gold);margin-bottom:12px}
+.values-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;flex:1;overflow-y:auto;padding-bottom:80px;align-content:start}
+.value-card{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:10px 12px;cursor:pointer;transition:all .15s;-webkit-tap-highlight-color:transparent;display:flex;align-items:center;gap:8px;min-height:48px}
+.value-card:active{transform:scale(.97)}
+.value-card.selected{border-color:var(--gold);background:rgba(197,165,90,.12)}
+.value-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.value-label{font-size:.8rem;line-height:1.3}
+.value-card.selected .value-label{color:var(--gold);font-weight:600}
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 16px;z-index:100;display:flex;gap:10px}
+.bottom-bar .big-btn{flex:1;padding:14px;font-size:.95rem;text-align:center}
+.rank-instruction{text-align:center;margin-bottom:12px}
+.rank-instruction h2{font-size:1.05rem;color:var(--text);margin-bottom:4px}
+.rank-instruction p{font-size:.8rem;color:var(--muted)}
+.rank-status{text-align:center;padding:8px;font-size:.8rem;color:var(--teal);font-weight:600;margin-bottom:8px}
+.rank-list{display:flex;flex-direction:column;gap:6px;flex:1;padding-bottom:20px;overflow-y:auto}
+.rank-item{background:var(--card);border:2px solid var(--border);border-radius:12px;padding:14px 12px;display:flex;align-items:center;gap:12px;cursor:grab;-webkit-tap-highlight-color:transparent;transition:transform .15s,box-shadow .15s,opacity .4s,max-height .4s;touch-action:none;user-select:none;max-height:80px;overflow:hidden}
+.rank-item.dragging{opacity:.4;transform:scale(.95)}
+.rank-item.drag-over{border-color:var(--gold);box-shadow:0 0 0 2px rgba(197,165,90,.3)}
+.rank-item.cut{opacity:.15;max-height:0;padding:0 12px;margin:0;border-color:var(--red);pointer-events:none}
+.rank-num{font-size:1.3rem;font-weight:900;color:var(--gold);width:28px;text-align:center;flex-shrink:0}
+.rank-handle{color:var(--muted);font-size:1.1rem;flex-shrink:0}
+.rank-name{font-size:.95rem;font-weight:600;flex:1}
+.rank-cat{font-size:.7rem;color:var(--muted)}
+.team-choose{text-align:center;padding:24px;margin-top:16px;background:var(--card);border-radius:14px;border:1px solid var(--border)}
+.team-choose h3{color:var(--gold);margin-bottom:12px;font-size:1.1rem}
+.team-choose p{font-size:.82rem;color:var(--muted);margin-bottom:16px}
+.team-btn{background:var(--card2);border:2px solid var(--border);color:var(--text);padding:14px;border-radius:10px;cursor:pointer;transition:all .15s;text-align:left;font-size:.9rem;margin-bottom:8px}
+.team-btn:hover{border-color:var(--gold)}
+.team-btn.joined{border-color:var(--gold);background:rgba(197,165,90,.12)}
+.team-btn .tb-name{font-weight:700;color:var(--gold)}
+.team-btn .tb-desc{font-size:.75rem;color:var(--muted);margin-top:2px}
+.student-mobile-nav{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:2px solid var(--gold);margin-bottom:16px}
+.student-mobile-nav h2{font-size:1.1rem;color:var(--gold)}
+.hamburger{background:none;border:none;color:var(--gold);font-size:1.5rem;cursor:pointer;padding:4px 8px}
+.mobile-menu{display:none;flex-direction:column;gap:4px;padding:0 16px 12px}
+.mobile-menu.open{display:flex}
+.mobile-menu button{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:10px;border-radius:8px;font-size:.85rem;font-weight:600;cursor:pointer;text-align:left}
+.mobile-menu button.active{color:var(--gold);border-color:var(--gold)}
+.result-card{background:var(--card);border-radius:16px;padding:24px;text-align:center;border:2px solid var(--gold);max-width:400px;width:100%;margin:0 auto}
+.result-card h2{font-size:1.3rem;color:var(--gold);margin-bottom:16px}
+.result-value{display:flex;align-items:center;gap:10px;padding:12px;background:var(--card2);border-radius:10px;margin-bottom:8px;text-align:left;animation:fadeIn .5s ease both}
+.result-rank{font-size:1.4rem;font-weight:900;color:var(--gold);width:30px;text-align:center}
+.result-name{font-size:1rem;font-weight:700}
+.result-cat{font-size:.72rem;color:var(--muted)}
+@keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){#startScreen h1{font-size:1.8rem}.room-code{font-size:2rem}.scattered-word{font-size:.95rem!important}.dash-grid{grid-template-columns:1fr}.teams-grid{grid-template-columns:1fr}}
+/* Leader values exercise */
+.lv-section{margin-bottom:24px}
+.lv-section h3{color:var(--gold);font-size:1rem;margin-bottom:8px}
+.lv-rank-item{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:12px;display:flex;align-items:center;gap:12px;margin-bottom:6px;cursor:grab;user-select:none;touch-action:none}
+.lv-rank-item.dragging{opacity:.4;transform:scale(.95)}.lv-rank-item.drag-over{border-color:var(--gold);box-shadow:0 0 0 2px rgba(197,165,90,.3)}
+.lv-chip{display:inline-block;padding:6px 14px;border-radius:20px;font-size:.8rem;font-weight:600;cursor:pointer;border:1px solid var(--border);color:var(--muted);transition:all .15s;user-select:none}
+.lv-chip.selected{border-color:var(--gold);color:var(--gold);background:rgba(197,165,90,.12)}
+.student-desktop-nav{display:flex;align-items:center;gap:4px;padding:8px 16px;border-bottom:1px solid var(--border);margin-bottom:16px;flex-wrap:wrap}
+.student-desktop-nav .nav-brand{color:var(--gold);font-weight:800;font-size:.85rem;margin-right:16px}
+.student-desktop-nav .nav-btn{background:transparent;border:none;color:var(--muted);font-size:.8rem;font-weight:600;padding:6px 12px;cursor:pointer;border-radius:8px;transition:all .15s}
+.student-desktop-nav .nav-btn:hover{color:var(--text);background:var(--card)}.student-desktop-nav .nav-btn.active{color:var(--gold);background:rgba(197,165,90,.1)}
+.tt-vhelp{display:inline-block;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;background:var(--card2);color:var(--muted);font-size:.65rem;cursor:pointer;vertical-align:middle;margin-left:4px}
+.tt-vdesc{display:none;font-size:.72rem;color:var(--muted);padding:2px 0 4px;line-height:1.4}
+.tt-cdesc{font-size:.75rem;color:var(--muted);margin-bottom:8px;line-height:1.4;font-style:italic}
+</style>
+</head>
+<body>
+
+<nav id="topNav" class="top-nav hidden">
+  <span class="nav-brand">Wartości Lidera</span>
+  <button class="nav-btn" data-page="canvasPage" onclick="APP.nav('canvasPage')">Canvas</button>
+  <button class="nav-btn" data-page="livePage" onclick="APP.nav('livePage')">Wartości na żywo</button>
+  <button class="nav-btn" data-page="dashPage" onclick="APP.nav('dashPage')">Dashboard</button>
+  <button class="nav-btn" data-page="adminPage" onclick="APP.nav('adminPage')">Panel Admina</button>
+</nav>
+<div id="startScreen" class="screen">
+  <div class="badge">Moduł: Ja jako lider/ka cz. 2</div><h1>Wartości Lidera</h1><p class="subtitle">Kluczowe wartości — fundamenty przywództwa</p>
+  <div style="margin-top:40px;display:flex;flex-direction:column;gap:12px;align-items:center">
+    <button class="secondary-btn" onclick="document.getElementById('manualJoin').classList.toggle('hidden')">📱 Dołącz do sesji</button>
+  </div>
+  <div id="manualJoin" class="hidden" style="margin-top:20px;text-align:center"><input type="text" id="manualRoomInput" class="name-input" placeholder="Kod sesji" style="max-width:200px;text-transform:uppercase;letter-spacing:4px;font-weight:700" maxlength="5"><br><button class="big-btn" style="margin-top:12px;padding:12px 32px;font-size:.9rem" onclick="APP.joinManually()">Dołącz</button></div>
+</div>
+<div id="canvasPage" class="p-screen fullscreen hidden"><div id="valuesField"></div></div>
+<div id="livePage" class="p-screen hidden"><div class="page-title">Mapa wartości grupy</div><div class="page-sub" id="liveSub"></div><div class="heatmap-wrap"><svg id="liveSvg" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="liveTT"></div></div></div>
+<div id="dashPage" class="p-screen hidden">
+  <div class="page-title">Dashboard</div><div class="page-sub" id="dashSub"></div>
+  <div class="dash-filters">
+    <label>Top</label><span class="slider-val" id="dashSliderVal">5</span><input type="range" id="dashSliderRange" min="5" max="10" value="5" step="1" oninput="APP.onDashSlider(this.value)">
+    <div class="dim-filter" id="dimFilter"></div>
+  </div>
+  <div class="dash-grid" id="dashGrid"></div>
+</div>
+<div id="adminPage" class="p-screen hidden">
+  
+  <div class="admin-tabs" id="adminTabs">
+    <button class="admin-tab active" onclick="APP.adminTab(this,'adminQR')">QR</button>
+    <button class="admin-tab" onclick="APP.adminTab(this,'adminPeople')">Osoby</button>
+    
+    <button class="admin-tab" id="teamsTabBtn" onclick="APP.adminTab(this,'adminTeams')">Zespoły</button>
+    <button class="admin-tab" onclick="APP.adminTab(this,'adminReduce')">Redukcja</button>
+  </div>
+  <div class="admin-section active" id="adminQR"><h3>Zeskanujcie kod</h3><div id="qrBox"></div><div class="room-code" id="roomCodeDisplay"></div><div style="font-size:.8rem;color:var(--muted);margin-top:8px;word-break:break-all" id="roomUrlDisplay"></div></div>
+  <div class="admin-section" id="adminPeople"><table class="people-table"><thead><tr><th>Imię</th><th>Etap</th><th>Zespół</th><th></th></tr></thead><tbody id="peopleBody"></tbody></table><div style="text-align:center;margin-top:16px;color:var(--muted);font-size:.82rem" id="peopleEmpty">Brak połączonych studentów</div></div>
+  
+  <div class="admin-section" id="adminTeams"><div class="config-row"><label for="maxMembers">Maks. członków w zespole</label><input type="number" id="maxMembers" value="5" min="1" max="20" onchange="APP.setMaxMembers(this.value)"></div><div class="config-row" style="margin-bottom:20px"><label for="teamToggle">Aktywuj pracę zespołową</label><label class="toggle-switch"><input type="checkbox" id="teamToggle" onchange="APP.toggleTeams(this.checked)"><span class="toggle-slider"></span></label></div><div class="teams-grid" id="teamsGrid" style="display:none"></div></div>
+  <div class="admin-section" id="adminReduce">
+    <div style="text-align:center"><div class="stat-card"><div class="stat-num" id="ctrlStudents">0</div><div class="stat-label">studentów</div></div><div class="stat-card"><div class="stat-num" id="ctrlRanked">0</div><div class="stat-label">ustawiło ranking</div></div></div>
+    <div class="reduction-panel"><h3 style="font-size:1.1rem;color:var(--text);margin-bottom:4px">Ile wartości widzą studenci?</h3><div class="current-count" id="currentLimit">10</div><div style="font-size:.85rem;color:var(--muted);margin-bottom:16px" id="reduceHint"></div><button class="danger-btn" id="reduceBtn" onclick="APP.reduceByOne()">✂️ Redukuj o 1</button></div>
+  </div>
+  <div class="admin-section" id="adminTeamDetail"></div>
+</div>
+<!-- Student -->
+<div id="studentNameScreen" class="student-screen hidden"><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center"><h2 style="font-size:1.4rem;color:var(--gold);margin-bottom:6px">Witaj! 👋</h2><p style="font-size:.85rem;color:var(--muted);margin-bottom:24px">Podaj swoje imię</p><input type="text" id="studentName" class="name-input" placeholder="Twoje imię" maxlength="20"><div class="validation-msg" id="nameError"></div><button class="big-btn" onclick="APP.startStudentFlow()" style="margin-top:12px;width:100%;max-width:320px">Dalej →</button></div></div>
+<div id="selectScreen" class="student-screen hidden"><div class="student-header"><h1>Wybierz swoje wartości</h1><div class="step-info">Krok 1 z 2</div></div><div class="student-progress"><div class="student-progress-fill" id="selectProgress"></div></div><div class="selection-instruction"><h2>Wybierz <strong id="maxSelectLabel">10</strong> wartości</h2><p>które są dla Ciebie najważniejsze jako lidera/liderki</p></div><div class="selection-counter">Wybrano: <span id="selectCount">0</span> / <span id="maxSelectCount">10</span></div><div class="values-grid" id="valuesGrid"></div><div class="bottom-bar"><button class="big-btn" id="selectNextBtn" disabled onclick="APP.goToRanking()">Dalej → Uszereguj</button></div></div>
+<div id="rankScreen" class="student-screen hidden"><div class="student-header"><h1>Uszereguj wartości</h1><div class="step-info">Przeciągaj w górę/dół</div></div><div class="rank-instruction"><h2>Najważniejsza na górze, najmniej ważna na dole</h2><p>Możesz zmieniać kolejność w każdej chwili</p></div><div class="rank-status" id="rankStatus"></div><div class="rank-list" id="rankList"></div></div>
+<div id="teamScreen" class="student-screen hidden"><div class="team-choose" id="teamChoosePanel"></div></div>
+<div id="studentTeamView" class="student-screen hidden"><div class="student-desktop-nav" id="stDesktopNav"></div><div class="student-mobile-nav"><h2 id="stTeamName"></h2><button class="hamburger" onclick="document.getElementById('stMobileMenu').classList.toggle('open')">☰</button></div><div class="mobile-menu" id="stMobileMenu"></div><div id="stTeamContent"></div></div>
+<div id="resultScreen" class="student-screen hidden"><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;width:100%"><div class="result-card"><h2>🏆 Twoje 5 kluczowych wartości</h2><div id="resultList"></div></div></div></div>
+<script>
+var APP=(function(){"use strict";
+var VALUES=[
+{id:1,en:"Freedom",pl:"Wolność",cat:"self-direction",dim:"openness"},{id:2,en:"Curious",pl:"Ciekawość",cat:"self-direction",dim:"openness"},{id:3,en:"Creativity",pl:"Kreatywność",cat:"self-direction",dim:"openness"},{id:4,en:"Independent",pl:"Niezależność",cat:"self-direction",dim:"openness"},{id:5,en:"Choosing own goals",pl:"Wybieranie własnych celów",cat:"self-direction",dim:"openness"},{id:6,en:"Privacy",pl:"Prywatność",cat:"self-direction",dim:"openness"},{id:7,en:"Self-respect",pl:"Szacunek do siebie",cat:"self-direction",dim:"openness"},
+{id:8,en:"Daring",pl:"Śmiałość",cat:"stimulation",dim:"openness"},{id:9,en:"A varied life",pl:"Urozmaicone życie",cat:"stimulation",dim:"openness"},{id:10,en:"An exciting life",pl:"Ekscytujące życie",cat:"stimulation",dim:"openness"},
+{id:11,en:"Enjoying life",pl:"Cieszenie się życiem",cat:"hedonism",dim:"openness"},{id:12,en:"Self-indulgent",pl:"Pobłażanie sobie",cat:"hedonism",dim:"openness"},{id:13,en:"Pleasure",pl:"Przyjemność",cat:"hedonism",dim:"openness"},
+{id:14,en:"Intelligent",pl:"Inteligencja",cat:"achievement",dim:"enhancement"},{id:15,en:"Capable",pl:"Kompetencja",cat:"achievement",dim:"enhancement"},{id:16,en:"Successful",pl:"Sukces",cat:"achievement",dim:"enhancement"},{id:17,en:"Ambitious",pl:"Ambicja",cat:"achievement",dim:"enhancement"},{id:18,en:"Influential",pl:"Wpływowość",cat:"achievement",dim:"enhancement"},
+{id:19,en:"Social recognition",pl:"Uznanie społeczne",cat:"power",dim:"enhancement"},{id:20,en:"Wealth",pl:"Bogactwo",cat:"power",dim:"enhancement"},{id:21,en:"Authority",pl:"Autorytet",cat:"power",dim:"enhancement"},{id:22,en:"Preserving my public image",pl:"Ochrona wizerunku",cat:"power",dim:"enhancement"},{id:23,en:"Social power",pl:"Władza społeczna",cat:"power",dim:"enhancement"},
+{id:24,en:"Healthy",pl:"Zdrowie",cat:"security",dim:"conservation"},{id:25,en:"Family security",pl:"Bezpieczeństwo rodziny",cat:"security",dim:"conservation"},{id:26,en:"Social order",pl:"Porządek społeczny",cat:"security",dim:"conservation"},{id:27,en:"Clean",pl:"Czystość",cat:"security",dim:"conservation"},{id:28,en:"Sense of belonging",pl:"Poczucie przynależności",cat:"security",dim:"conservation"},{id:29,en:"Reciprocation of favours",pl:"Odwzajemnianie przysług",cat:"security",dim:"conservation"},{id:30,en:"National security",pl:"Bezpieczeństwo narodowe",cat:"security",dim:"conservation"},
+{id:31,en:"Responsible",pl:"Odpowiedzialność",cat:"conformity",dim:"conservation"},{id:32,en:"Loyal",pl:"Lojalność",cat:"conformity",dim:"conservation"},{id:33,en:"Self-discipline",pl:"Samodyscyplina",cat:"conformity",dim:"conservation"},{id:34,en:"Politeness",pl:"Uprzejmość",cat:"conformity",dim:"conservation"},{id:35,en:"Honouring of elders",pl:"Szacunek dla starszych",cat:"conformity",dim:"conservation"},{id:36,en:"Obedient",pl:"Posłuszeństwo",cat:"conformity",dim:"conservation"},
+{id:37,en:"Humble",pl:"Pokora",cat:"tradition",dim:"conservation"},{id:38,en:"Detachment",pl:"Dystans",cat:"tradition",dim:"conservation"},{id:39,en:"Respect for tradition",pl:"Szacunek dla tradycji",cat:"tradition",dim:"conservation"},{id:40,en:"Devout",pl:"Pobożność",cat:"tradition",dim:"conservation"},{id:41,en:"Moderate",pl:"Umiarkowanie",cat:"tradition",dim:"conservation"},{id:42,en:"Accepting my portion in life",pl:"Akceptacja swojego losu",cat:"tradition",dim:"conservation"},
+{id:43,en:"Helpful",pl:"Pomocność",cat:"benevolence",dim:"transcendence"},{id:44,en:"Forgiving",pl:"Przebaczenie",cat:"benevolence",dim:"transcendence"},{id:45,en:"Honest",pl:"Uczciwość",cat:"benevolence",dim:"transcendence"},{id:46,en:"True friendship",pl:"Prawdziwa przyjaźń",cat:"benevolence",dim:"transcendence"},{id:47,en:"Meaning in life",pl:"Sens życia",cat:"benevolence",dim:"transcendence"},{id:48,en:"Mature love",pl:"Dojrzała miłość",cat:"benevolence",dim:"transcendence"},{id:49,en:"A spiritual life",pl:"Życie duchowe",cat:"benevolence",dim:"transcendence"},
+{id:50,en:"Broadminded",pl:"Otwartość umysłu",cat:"universalism",dim:"transcendence"},{id:51,en:"Equality",pl:"Równość",cat:"universalism",dim:"transcendence"},{id:52,en:"Unity with nature",pl:"Jedność z naturą",cat:"universalism",dim:"transcendence"},{id:53,en:"Protecting the environment",pl:"Ochrona środowiska",cat:"universalism",dim:"transcendence"},{id:54,en:"Inner harmony",pl:"Wewnętrzna harmonia",cat:"universalism",dim:"transcendence"},{id:55,en:"A world of beauty",pl:"Świat piękna",cat:"universalism",dim:"transcendence"},{id:56,en:"Social justice",pl:"Sprawiedliwość społeczna",cat:"universalism",dim:"transcendence"},{id:57,en:"A world at peace",pl:"Świat w pokoju",cat:"universalism",dim:"transcendence"},{id:58,en:"Wisdom",pl:"Mądrość",cat:"universalism",dim:"transcendence"}
+];
+var CATS={"self-direction":{pl:"Samokierowanie",dim:"openness",color:"#E74C3C"},"stimulation":{pl:"Stymulacja",dim:"openness",color:"#FF6B35"},"hedonism":{pl:"Hedonizm",dim:"openness",color:"#F39C12"},"achievement":{pl:"Osiągnięcia",dim:"enhancement",color:"#E67E22"},"power":{pl:"Władza",dim:"enhancement",color:"#D35400"},"security":{pl:"Bezpieczeństwo",dim:"conservation",color:"#2980B9"},"conformity":{pl:"Konformizm",dim:"conservation",color:"#27AE60"},"tradition":{pl:"Tradycja",dim:"conservation",color:"#16A085"},"benevolence":{pl:"Życzliwość",dim:"transcendence",color:"#9B59B6"},"universalism":{pl:"Uniwersalizm",dim:"transcendence",color:"#3498DB"}};
+var CO=["self-direction","universalism","benevolence","tradition","conformity","security","power","achievement","hedonism","stimulation"];
+var DIMS={openness:{pl:"Otwartość na zmianę"},enhancement:{pl:"Umacnianie siebie"},conservation:{pl:"Zachowawczość"},transcendence:{pl:"Przekraczanie siebie"}};
+var DIM_ARCS=[{dim:"transcendence",from:1,to:3},{dim:"conservation",from:3,to:6},{dim:"enhancement",from:6,to:8},{dim:"openness",from:8,to:11}];
+var DIM_CATS={openness:["self-direction","stimulation","hedonism"],enhancement:["achievement","power"],conservation:["security","conformity","tradition"],transcendence:["benevolence","universalism"]};
+var SC=["#E74C3C","#E67E22","#F39C12","#2ECC71","#1ABC9C","#3498DB","#9B59B6","#E91E63","#00BCD4","#FF7043","#AB47BC","#26A69A","#42A5F5","#FFA726","#EF5350","#66BB6A","#EC407A","#7E57C2","#29B6F6","#FFCA28"];
+var VDESC={1:"Wolność myśli i działania, możliwość samodzielnego decydowania",2:"Zainteresowanie wszystkim, odkrywanie, eksploracja",3:"Oryginalność, wyobraźnia, tworzenie nowych rzeczy",4:"Samodzielność, samowystarczalność, poleganie na sobie",5:"Swoboda w wyznaczaniu własnych celów życiowych",6:"Prawo do prywatnej sfery, do bycia samemu",7:"Wiara we własną wartość jako osoby",8:"Poszukiwanie przygód, ryzyko, odwaga działania",9:"Życie pełne wyzwań, nowości i zmian",10:"Życie pełne ekscytujących doświadczeń i emocji",11:"Czerpanie radości i satysfakcji z życia",12:"Pozwalanie sobie na przyjemności, robienie tego co sprawia radość",13:"Zaspokajanie pragnień i potrzeb",14:"Logiczne myślenie, zdolność analizy i wnioskowania",15:"Skuteczność w działaniu, zdolność realizacji celów",16:"Osiąganie celów, spełnianie ambicji",17:"Silne dążenie do sukcesu, pracowitość, determinacja",18:"Zdolność wpływania na ludzi i bieg wydarzeń",19:"Uznanie i szacunek ze strony innych za osiągnięcia",20:"Dobra materialne, zasoby finansowe, dostatek",21:"Prawo do przewodzenia, wydawania poleceń, bycia liderem",22:"Dbanie o to jak jest się postrzeganym przez innych",23:"Możliwość kontrolowania tego co robią inni ludzie",24:"Dobre zdrowie fizyczne i psychiczne",25:"Zapewnienie bezpieczeństwa i opieki najbliższym",26:"Stabilność i porządek w społeczeństwie",27:"Schludność, porządek w otoczeniu i w życiu",28:"Poczucie że się gdzieś przynależy, jest się częścią grupy",29:"Unikanie bycia dłużnym, odwzajemnianie gestów",30:"Ochrona kraju przed zagrożeniami",31:"Rzetelność, solidność w wypełnianiu obowiązków",32:"Wierność przyjaciołom i grupie, dotrzymywanie słowa",33:"Samokontrola, opieranie się pokusom, konsekwencja",34:"Uprzejmość i dobre maniery w kontaktach z ludźmi",35:"Okazywanie szacunku starszym, szanowanie ich mądrości",36:"Wypełnianie poleceń, podporządkowanie się regułom",37:"Skromność, brak potrzeby wywyższania się",38:"Dystans wobec spraw światowych, rezerwa",39:"Pielęgnowanie zwyczajów i praktyk kulturowych",40:"Głęboka wiara i oddanie sprawom duchowym",41:"Unikanie skrajności, poszukiwanie złotego środka",42:"Pogodzenie się z tym co przynosi życie",43:"Niesienie pomocy innym, wspieranie potrzebujących",44:"Gotowość do wybaczania, brak mściwości",45:"Prawdomówność, szczerość, transparentność",46:"Głębokie, bliskie relacje oparte na zaufaniu",47:"Poczucie celu i sensu w tym co się robi",48:"Głęboka bliskość emocjonalna i duchowa z partnerem",49:"Wewnętrzna harmonia duchowa, refleksja, medytacja",50:"Tolerancja dla odmiennych poglądów i ludzi",51:"Równe szanse i prawa dla wszystkich ludzi",52:"Poczucie jedności ze światem przyrody",53:"Dbanie o środowisko naturalne i ekologię",54:"Pokój wewnętrzny, pogodzenie się z samym sobą",55:"Docenianie piękna w naturze, sztuce i życiu",56:"Walka o sprawiedliwe traktowanie wszystkich",57:"Świat wolny od wojen i konfliktów",58:"Dojrzałe rozumienie życia, głęboka refleksja"};
+var CDESC={"self-direction":"Niezależne myślenie i działanie — wybieranie, tworzenie, odkrywanie. Wywodzi się z potrzeby kontroli i autonomii.","stimulation":"Ekscytacja, nowość i wyzwania w życiu. Wywodzi się z potrzeby różnorodności i stymulacji dla optymalnego funkcjonowania.","hedonism":"Przyjemność i zmysłowe zaspokojenie dla samego siebie. Wywodzi się z potrzeby odczuwania radości.","achievement":"Osobisty sukces poprzez wykazanie kompetencji zgodnie ze standardami społecznymi. Dążenie do bycia lepszym.","power":"Status społeczny i prestiż, kontrola lub dominacja nad ludźmi i zasobami.","security":"Bezpieczeństwo, harmonia i stabilność społeczeństwa, relacji i samego siebie.","conformity":"Powstrzymywanie działań, skłonności i impulsów, które mogą szkodzić innym lub naruszać oczekiwania społeczne.","tradition":"Szacunek, zaangażowanie i akceptacja zwyczajów i idei, które tradycyjna kultura lub religia narzuca jednostce.","benevolence":"Ochrona i pomnażanie dobra ludzi, z którymi jest się w częstym kontakcie osobistym (rodzina, przyjaciele).","universalism":"Zrozumienie, tolerancja i ochrona dobra wszystkich ludzi i natury. Wykracza poza bliski krąg."};
+var TEAMS=[
+  {id:"morgan",name:"J.P. Morgan",desc:"Bankier, budowniczy imperium finansowego \u2014 decyzyjność, władza, wizja strategiczna",bio:"<h3>John Pierpont Morgan (1837\u20131913)</h3><p>Amerykański finansista i bankier, jeden z najpotężniejszych ludzi w historii biznesu. Stworzył imperium bankowe J.P. Morgan & Co., które ukształtowało nowoczesny system finansowy USA.</p><p>Morgan był znany z niezwykłej zdolności podejmowania szybkich, odważnych decyzji. W 1907 roku niemal samodzielnie powstrzymał panikę bankową, organizując ratunkowe spotkania na Wall Street. Jego styl przywództwa opierał się na autorytecie osobistym, wizji strategicznej i absolutnej pewności siebie.</p><h3>Kluczowe cechy przywódcze</h3><p>\u2022 Decyzyjność pod presją<br>\u2022 Władza oparta na kompetencji i reputacji<br>\u2022 Wizja długoterminowa<br>\u2022 Odwaga w podejmowaniu ryzyka<br>\u2022 Zdolność jednoczenia ludzi wokół celu</p>"},
+  {id:"mandela",name:"Nelson Mandela",desc:"Przywódca polityczny \u2014 przebaczenie, sprawiedliwość, pokora i transformacja społeczna",bio:"<h3>Nelson Rolihlahla Mandela (1918\u20132013)</h3><p>Południowoafrykański przywódca antiapartheidu, więzień polityczny przez 27 lat, a następnie pierwszy czarnoskóry prezydent RPA (1994\u20131999).</p><p>Mandela jest symbolem przebaczenia i pojednania. Po wyjściu z więzienia zamiast zemsty wybrał dialog i współpracę z byłymi oprawcami. Jego przywództwo transformacyjne zjednoczyło podzielony naród i pokazało, że siła moralna przewyższa siłę fizyczną.</p><h3>Kluczowe cechy przywódcze</h3><p>\u2022 Pokora i empatia<br>\u2022 Przebaczenie jako narzędzie zmiany<br>\u2022 Sprawiedliwość społeczna<br>\u2022 Cierpliwość strategiczna<br>\u2022 Wizja ponad podziałami</p>"},
+  {id:"winfrey",name:"Oprah Winfrey",desc:"Ikona mediów i filantropii \u2014 autentyczność, empatia, inspirowanie milionów",bio:"<h3>Oprah Gail Winfrey (ur. 1954)</h3><p>Amerykańska prezenterka, producentka, filantropka i jedna z najbardziej wpływowych kobiet na świecie. Z trudnego dzieciństwa w ubóstwie zbudowała medialne imperium warte miliardy dolarów.</p><p>Styl przywództwa Oprah opiera się na autentyczności, empatii i zdolności do tworzenia głębokich więzi z ludźmi. Jej talk-show stał się platformą do zmiany społecznej, edukacji i inspiracji. Winfrey udowodniła, że przywództwo może być oparte na wrażliwości i otwartości.</p><h3>Kluczowe cechy przywódcze</h3><p>\u2022 Autentyczność i otwartość<br>\u2022 Empatia i słuchanie<br>\u2022 Odwaga dzielenia się swoją historią<br>\u2022 Inspirowanie przez przykład<br>\u2022 Filantropia i służba społeczna</p>"},
+  {id:"hansen",name:"Pia Hansen (fikt.)",desc:"Kapitan żeńskiej drużyny piłki ręcznej \u2014 dyscyplina, lojalność, praca zespołowa, sportowy duch",bio:"<h3>Pia Hansen \u2014 postać fikcyjna</h3><p>Fikcyjna kapitan duńskiej drużyny piłki ręcznej, stworzona na potrzeby ćwiczenia jako archetyp lidera sportowego. Pia łączy cechy wielu wielkich kapitanów drużynowych.</p><p>Jako kapitan, Pia musi codziennie balansować między wymaganiami trenera, potrzebami zespołu i własnymi ambicjami. Jej styl przywództwa opiera się na dawaniu przykładu na boisku, budowaniu zaufania w szatni i twardej samodyscyplinie. Wie, że drużyna jest silna jak jej najsłabsze ogniwo.</p><h3>Kluczowe cechy przywódcze</h3><p>\u2022 Lojalność wobec zespołu<br>\u2022 Samodyscyplina i pracowitość<br>\u2022 Odpowiedzialność za wynik grupowy<br>\u2022 Motywowanie przez przykład<br>\u2022 Odporność na presję</p>"}
+];
+var SK='values_explorer_student';
+var S={mode:null,roomCode:'',peer:null,connections:[],conn:null,studentData:{},currentLimit:10,snapshots:{},teamsEnabled:false,maxMembers:5,studentName:'',selected:[],ranked:[],maxSelect:10,myTeam:null,dashLimit:5,dashDims:['openness','enhancement','conservation','transcendence']};
+
+// UTILS
+function show(id){var a=document.querySelectorAll('.screen,.p-screen,.student-screen');for(var i=0;i<a.length;i++)a[i].classList.add('hidden');document.getElementById(id).classList.remove('hidden');}
+function genRoom(){var c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789',r='';for(var i=0;i<5;i++)r+=c[~~(Math.random()*c.length)];return r;}
+function shuffle(a){var b=a.slice();for(var i=b.length-1;i>0;i--){var j=~~(Math.random()*(i+1));var t=b[i];b[i]=b[j];b[j]=t;}return b;}
+function valById(id){for(var i=0;i<VALUES.length;i++)if(VALUES[i].id===id)return VALUES[i];return null;}
+function hR(h,a){return'rgba('+parseInt(h.slice(1,3),16)+','+parseInt(h.slice(3,5),16)+','+parseInt(h.slice(5,7),16)+','+a+')';}
+function esc(s){var d=document.createElement('div');d.appendChild(document.createTextNode(s));return d.innerHTML;}
+function svgE(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);for(var k in a)e.setAttribute(k,a[k]);return e;}
+function arcP(cx,cy,r1,r2,s,e){var sr=s*Math.PI/180,er=e*Math.PI/180;return'M'+(cx+r2*Math.cos(sr))+','+(cy+r2*Math.sin(sr))+' A'+r2+','+r2+' 0 '+(e-s>180?1:0)+' 1 '+(cx+r2*Math.cos(er))+','+(cy+r2*Math.sin(er))+' L'+(cx+r1*Math.cos(er))+','+(cy+r1*Math.sin(er))+' A'+r1+','+r1+' 0 '+(e-s>180?1:0)+' 0 '+(cx+r1*Math.cos(sr))+','+(cy+r1*Math.sin(sr))+' Z';}
+function getCounts(lim,filterPids){
+  var vc={};var pids=filterPids||Object.keys(S.studentData);
+  for(var pi=0;pi<pids.length;pi++){var sd=S.studentData[pids[pi]];if(!sd)continue;var vs=sd.ranked?sd.ranked.slice(0,lim):(sd.top10?sd.top10.slice(0,lim):[]);for(var i=0;i<vs.length;i++)vc[vs[i]]=(vc[vs[i]]||0)+1;}
+  var cc={};for(var ck in CATS){var cv=VALUES.filter(function(v){return v.cat===ck;});var c=0;for(var j=0;j<cv.length;j++)c+=(vc[cv[j].id]||0);cc[ck]=c;}cc._vc=vc;return cc;
+}
+function getTeamPids(tid){var r=[];for(var p in S.studentData)if(S.studentData[p].team===tid)r.push(p);return r;}
+function saveS(){if(S.mode!=='student')return;try{localStorage.setItem(SK,JSON.stringify({room:S.roomCode,name:S.studentName,selected:S.selected,ranked:S.ranked,maxSelect:S.maxSelect,currentLimit:S.currentLimit,team:S.myTeam,screen:curScreen()}));}catch(e){}}
+function curScreen(){if(!document.getElementById('studentTeamView').classList.contains('hidden'))return'teamView';if(!document.getElementById('teamScreen').classList.contains('hidden'))return'teamChoose';if(!document.getElementById('resultScreen').classList.contains('hidden'))return'result';if(!document.getElementById('rankScreen').classList.contains('hidden'))return'rank';if(!document.getElementById('selectScreen').classList.contains('hidden'))return'select';return'name';}
+function loadS(){try{return JSON.parse(localStorage.getItem(SK));}catch(e){return null;}}
+
+// NAV
+function nav(page){
+  if(S.canvasRAF&&page!=='canvasPage'){cancelAnimationFrame(S.canvasRAF);S.canvasRAF=null;}
+  if(page==='canvasPage'&&!S.canvasRAF){buildCanvas();}
+  var pages=['canvasPage','livePage','dashPage','adminPage'];
+  for(var i=0;i<pages.length;i++)document.getElementById(pages[i]).classList.add('hidden');
+  document.getElementById(page).classList.remove('hidden');
+  var btns=document.querySelectorAll('.nav-btn');for(var j=0;j<btns.length;j++)btns[j].classList.toggle('active',btns[j].getAttribute('data-page')===page);
+  if(page==='livePage')buildRing('liveSvg','liveTT',S.currentLimit);
+  if(page==='dashPage'){initDimFilter();buildDash(S.dashLimit);}
+  if(page==='adminPage')refreshAdmin();
+}
+
+// PRESENTER
+function startPresenter(){S.mode='presenter';S.roomCode=genRoom();document.getElementById('topNav').classList.remove('hidden');document.getElementById('startScreen').classList.add('hidden');nav('canvasPage');buildCanvas();initPeer();takeSnap(10);}
+function initPeer(){
+  var pid='val-'+S.roomCode.toLowerCase();S.peer=new Peer(pid);
+  S.peer.on('connection',function(conn){S.connections.push(conn);conn.on('open',function(){conn.send({type:'setLimit',limit:S.currentLimit});if(S.teamsEnabled)conn.send({type:'teamsOn',teams:TEAMS.map(function(t){return{id:t.id,name:t.name,desc:t.desc};})});});conn.on('data',function(d){onSMsg(conn.peer,d);});conn.on('close',function(){S.connections=S.connections.filter(function(c){return c.peer!==conn.peer;});upAll();});upAll();});
+}
+function onSMsg(pid,d){
+  if(d.type==='join'){var reqName=String(d.name||'').trim();for(var p2 in S.studentData){if(p2!==pid&&S.studentData[p2].name&&S.studentData[p2].name.toLowerCase()===reqName.toLowerCase()){sendTo(pid,{type:'nameError',msg:'To imi\u0119 jest ju\u017c zaj\u0119te.'});return;}}}
+  if(!S.studentData[pid])S.studentData[pid]={connId:pid};var sd=S.studentData[pid];
+  if(d.type==='join'){sd.name=String(d.name||'').trim();sd.phase='selecting';}
+  else if(d.type==='top'){sd.top10=d.values;sd.phase='ranking';}
+  else if(d.type==='ranked'){sd.ranked=d.values;sd.phase='waiting';}
+  else if(d.type==='rerank'){sd.ranked=d.values;}
+  else if(d.type==='team'){sd.team=d.team;sd.phase='teams';}
+  else if(d.type==='leaderEx'){sd.leaderEx=d;}
+  upAll();
+}
+function broadcast(m){for(var i=0;i<S.connections.length;i++)if(S.connections[i].open)S.connections[i].send(m);}
+function sendTo(pid,m){var c=S.connections.find(function(cn){return cn.peer===pid;});if(c&&c.open)c.send(m);}
+function upAll(){upReduce();refreshPeople();if(!document.getElementById('livePage').classList.contains('hidden'))buildRing('liveSvg','liveTT',S.currentLimit);var sub=document.getElementById('liveSub');if(sub)sub.textContent='Top '+S.currentLimit+' \u2014 '+Object.keys(S.studentData).length+' studentów';broadcastTeamStats();}
+function broadcastTeamStats(){if(!S.teamsEnabled)return;var stats={};for(var i=0;i<TEAMS.length;i++){var tid=TEAMS[i].id;var pids=getTeamPids(tid);var cc=getCounts(5,pids);var vc=cc._vc;stats[tid]={cc:{},vc:vc,total:pids.length};for(var ck in CATS)stats[tid].cc[ck]=cc[ck]||0;}broadcast({type:'teamStats',stats:stats});}
+function reduceByOne(){if(S.currentLimit<=5)return;S.currentLimit--;takeSnap(S.currentLimit);broadcast({type:'reduce',limit:S.currentLimit});upAll();if(S.currentLimit===5){for(var k in S.studentData)if(S.studentData[k].phase!=='teams')S.studentData[k].phase='done';broadcast({type:'final'});}}
+function takeSnap(l){S.snapshots[l]=getCounts(l);}
+
+// ADMIN TABS
+function adminTab(btn,id){var secs=document.querySelectorAll('.admin-section');for(var i=0;i<secs.length;i++)secs[i].classList.remove('active');document.getElementById(id).classList.add('active');var tabs=document.querySelectorAll('.admin-tab');for(var j=0;j<tabs.length;j++)tabs[j].classList.remove('active');btn.classList.add('active');if(id==='adminReduce')upReduce();if(id==='adminTeams')refreshTeams();}
+function refreshAdmin(){refreshPeople();upReduce();buildQR();}
+function buildQR(){document.getElementById('roomCodeDisplay').textContent=S.roomCode;var b=window.location.origin+window.location.pathname.replace(/[^\/]*$/,'');var u=b+'index.html?room='+S.roomCode;document.getElementById('roomUrlDisplay').textContent=u;var bx=document.getElementById('qrBox');if(!bx.firstChild)new QRCode(bx,{text:u,width:220,height:220,colorDark:"#1B2A4A",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});}
+function refreshPeople(){
+  var tb=document.getElementById('peopleBody');tb.innerHTML='';var n=Object.keys(S.studentData).length;
+  document.getElementById('peopleEmpty').style.display=n?'none':'block';
+  for(var pid in S.studentData){var sd=S.studentData[pid];var ph=sd.phase||'selecting';
+    var phLabel={selecting:'Wybór top 10',ranking:'Szeregowanie',waiting:'Szeregowanie',done:'Praca w zespołach',teams:'Praca w zespołach'}[ph]||ph;
+    var phClass={selecting:'s',ranking:'r',waiting:'r',done:'t',teams:'t'}[ph]||'s';
+    var tr=document.createElement('tr');tr.setAttribute('data-pid',pid);
+    tr.innerHTML='<td>'+esc(sd.name||'?')+'</td><td><span class="phase-badge '+phClass+'">'+esc(phLabel)+'</span></td><td>'+esc(sd.team||'\u2014')+'</td><td></td>';
+    // Edit team button
+    var editBtn=document.createElement('button');editBtn.className='tbl-btn edit';editBtn.textContent='\u270E';editBtn.title='Zmień zespół';
+    (function(p){editBtn.addEventListener('click',function(){editTeam(p);});})(pid);
+    // Delete button
+    var delBtn=document.createElement('button');delBtn.className='tbl-btn del';delBtn.textContent='\u2715';delBtn.title='Usuń';
+    (function(p){delBtn.addEventListener('click',function(){deleteStudent(p);});})(pid);
+    var tdAct=tr.querySelector('td:last-child');tdAct.appendChild(editBtn);tdAct.appendChild(delBtn);
+    tb.appendChild(tr);
+  }
+}
+function editTeam(pid){
+  var sd=S.studentData[pid];if(!sd)return;
+  var sel=document.createElement('select');sel.className='team-select';
+  sel.innerHTML='<option value="">\u2014</option>'+TEAMS.map(function(t){return'<option value="'+esc(t.id)+'"'+(sd.team===t.id?' selected':'')+'>'+esc(t.name)+'</option>';}).join('');
+  sel.addEventListener('change',function(){sd.team=this.value||null;sendTo(pid,{type:'setTeam',team:sd.team});refreshPeople();refreshTeams();});
+  var row=document.querySelector('#peopleBody tr[data-pid="'+pid+'"]');
+  if(row){row.children[2].innerHTML='';row.children[2].appendChild(sel);}
+}
+function deleteStudent(pid){delete S.studentData[pid];var conn=S.connections.find(function(c){return c.peer===pid;});if(conn)try{conn.close();}catch(e){}S.connections=S.connections.filter(function(c){return c.peer!==pid;});upAll();}
+function upReduce(){
+  var n=Object.keys(S.studentData).length;var rk=0;for(var k in S.studentData)if(S.studentData[k].ranked)rk++;
+  var e;e=document.getElementById('ctrlStudents');if(e)e.textContent=n;
+  e=document.getElementById('ctrlRanked');if(e)e.textContent=rk;
+  e=document.getElementById('currentLimit');if(e)e.textContent=S.currentLimit;
+  var btn=document.getElementById('reduceBtn'),hint=document.getElementById('reduceHint');
+  if(S.currentLimit<=5){if(btn)btn.disabled=true;if(hint)hint.textContent='\u2713 Osiągnięto docelowe 5!';}
+  else{if(btn)btn.disabled=false;if(hint)hint.textContent='Kliknij aby obciąć pozycję #'+S.currentLimit;}
+}
+function setMaxMembers(v){S.maxMembers=parseInt(v)||5;broadcast({type:'maxMembers',max:S.maxMembers});}
+function toggleTeams(on){S.teamsEnabled=on;document.getElementById('teamsGrid').style.display=on?'grid':'none';if(on){broadcast({type:'teamsOn',teams:TEAMS.map(function(t){return{id:t.id,name:t.name,desc:t.desc};})});refreshTeams();}else broadcast({type:'teamsOff'});}
+function refreshTeams(){
+  var g=document.getElementById('teamsGrid');g.innerHTML='';
+  for(var i=0;i<TEAMS.length;i++){(function(t){
+    var card=document.createElement('div');card.className='team-card';
+    var members=[];for(var pid in S.studentData)if(S.studentData[pid].team===t.id)members.push(esc(S.studentData[pid].name||'?'));
+    card.innerHTML='<h4>'+esc(t.name)+'</h4><div class="team-desc">'+esc(t.desc)+'</div><div class="team-members">'+(members.length?members.map(function(m){return'<div>'+m+'</div>';}).join(''):'<div style="color:var(--muted);font-style:italic">Brak cz\u0142onk\u00f3w</div>')+'</div>';
+    card.addEventListener('click',function(){showAdminTeamDetail(t.id);});
+    g.appendChild(card);
+  })(TEAMS[i]);}
+}
+function showAdminTeamDetail(tid){
+  var team=TEAMS.find(function(t){return t.id===tid;});if(!team)return;
+  var sec=document.getElementById('adminTeamDetail');sec.innerHTML='';sec.classList.add('active');
+  // Hide other sections
+  var secs=document.querySelectorAll('.admin-section');for(var i=0;i<secs.length;i++)if(secs[i].id!=='adminTeamDetail')secs[i].classList.remove('active');
+  var tabs=document.querySelectorAll('.admin-tab');for(var j=0;j<tabs.length;j++)tabs[j].classList.remove('active');
+  // Back button
+  var back=document.createElement('button');back.className='secondary-btn';back.textContent='\u2190 Powrót do Zespołów';
+  back.addEventListener('click',function(){sec.classList.remove('active');document.getElementById('adminTeams').classList.add('active');document.getElementById('teamsTabBtn').classList.add('active');refreshTeams();});
+  sec.appendChild(back);
+  // Tabs
+  var tabsDiv=document.createElement('div');tabsDiv.className='team-detail-tabs';tabsDiv.style.marginTop='16px';
+  var views=['Osoby','BIO Lidera','Statystyki'];var content=document.createElement('div');
+  function showView(idx){
+    content.innerHTML='';
+    for(var k=0;k<tabsDiv.children.length;k++)tabsDiv.children[k].classList.toggle('active',k===idx);
+    if(idx===0){var pids=getTeamPids(tid);if(!pids.length){content.innerHTML='<p style="color:var(--muted)">Brak cz\u0142onk\u00f3w</p>';return;}for(var m=0;m<pids.length;m++){var sd=S.studentData[pids[m]];content.innerHTML+='<div style="padding:8px 0;border-bottom:1px solid var(--border)">'+esc(sd.name||'?')+'</div>';}}
+    else if(idx===1){content.innerHTML='<div class="bio-text">'+team.bio+'</div>';}
+    else if(idx===2){buildTeamStats(content,tid);}
+  }
+  for(var vi=0;vi<views.length;vi++){(function(i){var btn=document.createElement('button');btn.className='team-detail-tab'+(i===0?' active':'');btn.textContent=views[i];btn.addEventListener('click',function(){showView(i);});tabsDiv.appendChild(btn);})(vi);}
+  sec.appendChild(tabsDiv);sec.appendChild(content);showView(0);
+}
+function buildTeamStats(container,tid){
+  var pids=getTeamPids(tid);var cc=getCounts(5,pids);var vc=cc._vc;var tot=pids.length;
+  var svgId='teamStat_'+tid+'_svg',ttId='teamStat_'+tid+'_tt';
+  container.innerHTML='<div class="page-sub" style="margin-bottom:12px">Top 5 \u2014 '+tot+' student\u00f3w</div>';
+  var grid=document.createElement('div');grid.className='dash-grid';
+  var c0=document.createElement('div');c0.className='dash-card fullcard ring-small';
+  c0.innerHTML='<h3>Ko\u0142o Schwartza</h3><div class="heatmap-wrap"><svg id="'+svgId+'" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="'+ttId+'"></div></div>';
+  grid.appendChild(c0);
+  setTimeout(function(){buildRing(svgId,ttId,5,pids);},50);
+  var c1=mkCard('Top 10 warto\u015bci');var sorted=Object.keys(vc).map(function(k){return{id:parseInt(k),c:vc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+  var maxV=sorted.length?sorted[0].c:1;
+  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,CATS[sv?sv.cat:'']?CATS[sv.cat].color:'#C5A55A'));}
+  grid.appendChild(c1.el);
+  var c2=mkCard('Ranking kategorii');
+  var catArr=CO.map(function(ck){return{key:ck,c:cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
+  var maxCat=catArr.length?catArr[0].c:1;
+  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,CATS[catArr[j].key].color));
+  grid.appendChild(c2.el);
+  var c3=mkCard('Wymiary Schwartza');
+  var dCol={openness:'#E74C3C',enhancement:'#E67E22',conservation:'#2980B9',transcendence:'#9B59B6'};
+  var dimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
+  var maxDim=dimArr.length?dimArr[0].c:1;
+  for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
+  grid.appendChild(c3.el);
+  container.appendChild(grid);
+}
+
+// CANVAS
+function buildCanvas(){
+  var f=document.getElementById('valuesField');f.innerHTML='';var w=window.innerWidth,h=window.innerHeight-52;
+  var sh=shuffle(VALUES);var cols=Math.ceil(Math.sqrt(sh.length*(w/h)));var rows=Math.ceil(sh.length/cols);var cW=w/cols,cH=h/rows;var items=[];
+  for(var i=0;i<sh.length;i++){var v=sh[i];var col=i%cols,row=~~(i/cols);var x=cW*col+cW*(0.05+Math.random()*0.65);var y=cH*row+cH*(0.1+Math.random()*0.65);
+    var span=document.createElement('span');span.className='scattered-word';span.textContent=v.pl;span.style.left=x+'px';span.style.top=y+'px';span.style.color=SC[~~(Math.random()*SC.length)];span.style.transform='rotate('+((Math.random()-0.5)*28)+'deg)';span.style.opacity=(0.7+Math.random()*0.3).toFixed(2);f.appendChild(span);
+    items.push({el:span,x:x,y:y,dx:(Math.random()-0.5)*0.45,dy:(Math.random()-0.5)*0.35});}
+  (function dr(){for(var i=0;i<items.length;i++){var t=items[i];t.x+=t.dx;t.y+=t.dy;if(t.x<10||t.x>w-120){t.dx*=-1;t.x=Math.max(10,Math.min(t.x,w-120));}if(t.y<10||t.y>h-30){t.dy*=-1;t.y=Math.max(10,Math.min(t.y,h-30));}t.el.style.left=t.x+'px';t.el.style.top=t.y+'px';}S.canvasRAF=requestAnimationFrame(dr);})();
+}
+
+// SVG RING (supports filterPids for team view)
+function buildRing(svgId,ttId,lim,filterPids){
+  var svg=document.getElementById(svgId);if(!svg)return;svg.innerHTML='';var cx=300,cy=300,R=240,r2=80,n=CO.length,st=360/n;
+  var defs=svgE('defs',{});svg.appendChild(defs);svg.appendChild(svgE('circle',{cx:cx,cy:cy,r:R+2,fill:'none',stroke:'rgba(255,255,255,0.08)','stroke-width':1}));
+  var cc=getCounts(lim,filterPids);var maxC=1;for(var ck in CATS)if(cc[ck])maxC=Math.max(maxC,cc[ck]);
+  // Dim filter
+  var activeDims=filterPids?['openness','enhancement','conservation','transcendence']:S.dashDims;
+  for(var i=0;i<n;i++){var sa=-90+i*st,ea=sa+st;var cat=CO[i];var catDim=CATS[cat].dim;var dimActive=activeDims.indexOf(catDim)>=0;
+    var c=cc[cat]||0;var inten=dimActive?Math.min(c/Math.max(maxC,1),1):0;
+    var el=svgE('path',{d:arcP(cx,cy,r2,R,sa,ea),fill:hR('#E8820C',dimActive?(0.04+inten*0.7):0.02),stroke:'rgba(255,255,255,'+(dimActive?'0.12':'0.04')+')','stroke-width':1.5,cursor:'pointer',opacity:dimActive?1:0.3});svg.appendChild(el);
+    var ma=sa+st/2;var lr=R*0.78,lx=cx+lr*Math.cos(ma*Math.PI/180),ly=cy+lr*Math.sin(ma*Math.PI/180);
+    var lb=svgE('text',{x:lx,y:ly,fill:'#fff','font-size':'11.5','font-weight':'700','text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none',opacity:dimActive?1:0.2});lb.textContent=CATS[cat].pl;var rot=ma;if(rot>90&&rot<270)rot+=180;lb.setAttribute('transform','rotate('+rot+','+lx+','+ly+')');svg.appendChild(lb);
+    var cr2=R*0.52,ccx2=cx+cr2*Math.cos(ma*Math.PI/180),ccy2=cy+cr2*Math.sin(ma*Math.PI/180);
+    var cnt=svgE('text',{x:ccx2,y:ccy2,fill:'#fff','font-size':'24','font-weight':'900','text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none',opacity:dimActive?'0.9':'0.15'});cnt.textContent=c>0?c:'';svg.appendChild(cnt);
+    if(ttId)(function(ck2,seg2){seg2.addEventListener('mouseenter',function(e){showTT(e,ck2,lim,ttId,filterPids);});seg2.addEventListener('mouseleave',function(){document.getElementById(ttId).style.opacity='0';});})(cat,el);
+  }
+  var outerR=R+28;
+  for(var di=0;di<DIM_ARCS.length;di++){var dd=DIM_ARCS[di];var fa=-90+dd.from*st,ta=-90+dd.to*st;
+    var dimOn=activeDims?activeDims.indexOf(dd.dim)>=0:true;
+    var label=DIMS[dd.dim].pl.toUpperCase();
+    var arcR=outerR;var startA,endA,midA=(fa+ta)/2;
+    // Determine if text goes clockwise or needs flip
+    var needFlip=(midA>90&&midA<270);
+    if(needFlip){startA=ta;endA=fa;}else{startA=fa;endA=ta;}
+    var pathId='dimArc_'+svgId+'_'+di;
+    var sar=startA*Math.PI/180,ear=endA*Math.PI/180;
+    var sx=cx+arcR*Math.cos(sar),sy=cy+arcR*Math.sin(sar);
+    var ex=cx+arcR*Math.cos(ear),ey=cy+arcR*Math.sin(ear);
+    var sweep=needFlip?0:1;var lg=Math.abs(endA-startA)>180?1:0;
+    var pd='M'+sx+','+sy+' A'+arcR+','+arcR+' 0 '+lg+' '+sweep+' '+ex+','+ey;
+    var pathEl=svgE('path',{id:pathId,d:pd,fill:'none',stroke:'none'});
+    if(!defs.parentNode){var df=svgE('defs',{});svg.insertBefore(df,svg.firstChild);defs=df;}
+    defs.appendChild(pathEl);
+    var txt=svgE('text',{fill:'#fff','font-size':'10','font-weight':'600','letter-spacing':'3',opacity:dimOn?'0.55':'0.12'});
+    var tp=svgE('textPath',{});tp.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href','#'+pathId);tp.setAttribute('startOffset','50%');tp.setAttribute('text-anchor','middle');
+    tp.textContent=label;txt.appendChild(tp);svg.appendChild(txt);
+  }
+  svg.appendChild(svgE('circle',{cx:cx,cy:cy,r:r2-4,fill:'#0F1923',stroke:'rgba(255,255,255,0.1)','stroke-width':1}));
+  var pCount=filterPids?filterPids.length:Object.keys(S.studentData).length;
+  var t1=svgE('text',{x:cx,y:cy-8,fill:'#C5A55A','font-size':'14','font-weight':'700','text-anchor':'middle'});t1.textContent='Top '+lim;svg.appendChild(t1);
+  var t2=svgE('text',{x:cx,y:cy+12,fill:'#8A9BB0','font-size':'11','text-anchor':'middle'});t2.textContent=pCount+' studentów';svg.appendChild(t2);
+}
+function showTT(e,catKey,lim,ttId,filterPids){
+  var tt=document.getElementById(ttId);if(!tt)return;var cat=CATS[catKey];var vs=VALUES.filter(function(v){return v.cat===catKey;});var cc=getCounts(lim,filterPids);var vc=cc._vc;
+  var cdesc=CDESC[catKey]||'';
+  var lines=vs.map(function(v){var cnt=vc[v.id]||0;var vdesc=VDESC[v.id]||'';
+    var nameStr=cnt>0?'<strong style="color:'+cat.color+'">'+v.pl+'</strong> ('+cnt+')':'<span style="opacity:.4">'+v.pl+'</span>';
+    return'<div>'+nameStr+' <span class="tt-vhelp" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display===\'block\'?\'none\':\'block\'">?</span><div class="tt-vdesc">'+vdesc+'</div></div>';
+  });
+  tt.innerHTML='<div class="tt-cat" style="color:'+cat.color+'">'+cat.pl+'</div><div class="tt-dim">'+DIMS[cat.dim].pl+'</div><div class="tt-cdesc">'+cdesc+'</div><div class="tt-values">'+lines.join('')+'</div><div class="tt-count">\u03a3 '+(cc[catKey]||0)+'</div>';
+  tt.style.pointerEvents='auto';
+  var wrap=tt.parentElement;var rect=wrap.getBoundingClientRect();tt.style.left=Math.min(e.clientX-rect.left+10,rect.width-260)+'px';tt.style.top=Math.max(0,e.clientY-rect.top-20)+'px';tt.style.opacity='1';
+}
+
+// DASHBOARD
+function initDimFilter(){
+  var f=document.getElementById('dimFilter');if(f.children.length)return;
+  var dims=['openness','enhancement','conservation','transcendence'];
+  for(var i=0;i<dims.length;i++){(function(dk){
+    var chip=document.createElement('span');chip.className='dim-chip on';chip.textContent=DIMS[dk].pl;chip.setAttribute('data-dim',dk);
+    chip.addEventListener('click',function(){var idx=S.dashDims.indexOf(dk);if(idx>=0)S.dashDims.splice(idx,1);else S.dashDims.push(dk);chip.className='dim-chip '+(S.dashDims.indexOf(dk)>=0?'on':'off');buildDash(S.dashLimit);});
+    f.appendChild(chip);
+  })(dims[i]);}
+}
+function buildDash(lim){
+  takeSnap(lim);var grid=document.getElementById('dashGrid');grid.innerHTML='';var cc=getCounts(lim);var vc=cc._vc;var tot=Object.keys(S.studentData).length;
+  document.getElementById('dashSub').textContent='Top '+lim+' \u2014 '+tot+' studentów';
+  // Ring
+  var c0=document.createElement('div');c0.className='dash-card fullcard ring-small';
+  c0.innerHTML='<h3>Koło Schwartza</h3><div class="heatmap-wrap"><svg id="dashRingSvg" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="dashRingTT"></div></div>';
+  var bk0=document.createElement('button');bk0.className='secondary-btn dash-back';bk0.textContent='\u2190 Wróć';bk0.addEventListener('click',function(ev){ev.stopPropagation();c0.classList.remove('expanded');});
+  c0.insertBefore(bk0,c0.firstChild);
+  c0.addEventListener('click',function(e){if(!c0.classList.contains('expanded')&&e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')c0.classList.add('expanded');});
+  grid.appendChild(c0);
+  setTimeout(function(){buildRing('dashRingSvg','dashRingTT',lim);},50);
+  // Filter values by active dims
+  var activeCats={};for(var di=0;di<S.dashDims.length;di++){var cats=DIM_CATS[S.dashDims[di]];for(var ci=0;ci<cats.length;ci++)activeCats[cats[ci]]=true;}
+  // Top values (filtered)
+  var fvc={};for(var vid in vc){var v=valById(parseInt(vid));if(v&&activeCats[v.cat])fvc[vid]=vc[vid];}
+  var c1=mkCard('Top 10 wartości');var sorted=Object.keys(fvc).map(function(k){return{id:parseInt(k),c:fvc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+  var maxV=sorted.length?sorted[0].c:1;
+  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,CATS[sv?sv.cat:'']?CATS[sv.cat].color:'#C5A55A'));}
+  grid.appendChild(c1.el);
+  // Categories (filtered)
+  var c2=mkCard('Ranking kategorii');var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
+  var maxCat=catArr.length?catArr[0].c:1;
+  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,CATS[catArr[j].key].color));
+  grid.appendChild(c2.el);
+  // Dimensions (filtered)
+  var c3=mkCard('Wymiary Schwartza');var dimArr=S.dashDims.map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
+  var maxDim=dimArr.length?dimArr[0].c:1;var dCol={openness:'#E74C3C',enhancement:'#E67E22',conservation:'#2980B9',transcendence:'#9B59B6'};
+  for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
+  grid.appendChild(c3.el);
+}
+function mkCard(title){
+  var card=document.createElement('div');card.className='dash-card';
+  var bk=document.createElement('button');bk.className='secondary-btn dash-back';bk.textContent='\u2190 Wróć';bk.addEventListener('click',function(ev){ev.stopPropagation();card.classList.remove('expanded');});
+  var h=document.createElement('h3');h.textContent=title;var cnt=document.createElement('div');
+  card.appendChild(bk);card.appendChild(h);card.appendChild(cnt);
+  card.addEventListener('click',function(e){if(!card.classList.contains('expanded')&&e.target.tagName!=='BUTTON')card.classList.add('expanded');});
+  return{el:card,cnt:cnt};
+}
+function mkBar(label,val,max,color){
+  var r=document.createElement('div');r.className='bar-row';
+  r.innerHTML='<div class="bar-label">'+label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(val/Math.max(max,1)*100)+'%;background:'+color+'">'+val+'</div></div>';return r;
+}
+function onDashSlider(v){S.dashLimit=parseInt(v);document.getElementById('dashSliderVal').textContent=v;buildDash(parseInt(v));}
+
+// STUDENT
+function initStudent(rc){S.mode='student';S.roomCode=rc;var saved=loadS();
+  if(saved&&saved.room===rc&&saved.name&&saved.screen!=='name'){S.studentName=saved.name;S.selected=saved.selected||[];S.ranked=saved.ranked||[];S.maxSelect=saved.maxSelect||10;S.currentLimit=saved.currentLimit||10;S.myTeam=saved.team||null;
+    connectP(function(){
+      if(saved.screen==='teamView'&&S.myTeam){showStudentTeamView();}
+      else if(saved.screen==='teamChoose'){showTeamChoose();}
+      else if(saved.screen==='rank'&&S.ranked.length){show('rankScreen');buildRankList();}
+      else if(saved.screen==='result'){showFinal();}
+      else{show('selectScreen');buildSelGrid();restoreSel();}
+    });
+  }else{show('studentNameScreen');}
+}
+function startStudentFlow(){
+  var el=document.getElementById('studentName');var err=document.getElementById('nameError');var name=el.value.trim();
+  if(!name){el.classList.add('error');err.textContent='Wpisz swoje imię';setTimeout(function(){el.classList.remove('error');},500);return;}
+  err.textContent='';S.studentName=name;connectP(function(){show('selectScreen');buildSelGrid();});
+}
+function connectP(cb){
+  var hid='val-'+S.roomCode.toLowerCase();S.peer=new Peer();
+  S.peer.on('open',function(){S.conn=S.peer.connect(hid,{reliable:true});S.conn.on('open',function(){S.conn.send({type:'join',name:S.studentName});if(cb)cb();});S.conn.on('data',function(d){onPMsg(d);});S.conn.on('error',function(){if(cb)cb();});});
+  S.peer.on('error',function(){if(cb)cb();});
+}
+function sendP(d){if(S.conn&&S.conn.open)S.conn.send(d);}
+function onPMsg(d){
+  if(d.type==='setLimit'){S.maxSelect=d.limit;S.currentLimit=d.limit;var ml=document.getElementById('maxSelectLabel');if(ml)ml.textContent=d.limit;var mc=document.getElementById('maxSelectCount');if(mc)mc.textContent=d.limit;updateSelCount();}
+  else if(d.type==='reduce'){S.currentLimit=d.limit;updateRankScr();saveS();}
+  else if(d.type==='final'){S.currentLimit=5;showFinal();saveS();}
+  else if(d.type==='teamsOn'){S._teams=d.teams;if(!S.myTeam&&!document.getElementById('resultScreen').classList.contains('hidden')){showTeamChoose();}}
+  else if(d.type==='teamsOff'){S._teams=null;}
+  else if(d.type==='setTeam'){S.myTeam=d.team;saveS();}
+  else if(d.type==='nameError'){show('studentNameScreen');var err=document.getElementById('nameError');if(err)err.textContent=d.msg;var el=document.getElementById('studentName');if(el){el.classList.add('error');setTimeout(function(){el.classList.remove('error');},500);}}
+  else if(d.type==='teamStats'){S._teamStats=d.stats;}
+}
+function buildSelGrid(){
+  var g=document.getElementById('valuesGrid');g.innerHTML='';var sh=shuffle(VALUES);
+  var ml=document.getElementById('maxSelectLabel');if(ml)ml.textContent=S.maxSelect;
+  var mc=document.getElementById('maxSelectCount');if(mc)mc.textContent=S.maxSelect;
+  for(var i=0;i<sh.length;i++){var v=sh[i];var c=SC[~~(Math.random()*SC.length)];
+    var card=document.createElement('div');card.className='value-card';card.setAttribute('data-id',v.id);
+    card.innerHTML='<div class="value-dot" style="background:'+c+'"></div><div class="value-label">'+v.pl+'</div>';
+    card.addEventListener('click',toggleSel);g.appendChild(card);}
+  updateSelCount();
+}
+function restoreSel(){var cards=document.querySelectorAll('#valuesGrid .value-card');for(var i=0;i<cards.length;i++){if(S.selected.indexOf(parseInt(cards[i].getAttribute('data-id')))>=0)cards[i].classList.add('selected');}updateSelCount();}
+function toggleSel(e){var card=e.currentTarget,id=parseInt(card.getAttribute('data-id'));var idx=S.selected.indexOf(id);
+  if(idx>=0){S.selected.splice(idx,1);card.classList.remove('selected');}else{if(S.selected.length>=S.maxSelect)return;S.selected.push(id);card.classList.add('selected');}updateSelCount();saveS();}
+function updateSelCount(){var el=document.getElementById('selectCount');if(el)el.textContent=S.selected.length;var pf=document.querySelector('#selectScreen .student-progress-fill');if(pf)pf.style.width=(S.selected.length/S.maxSelect*100)+'%';var btn=document.getElementById('selectNextBtn');if(btn)btn.disabled=S.selected.length!==S.maxSelect;}
+function goToRanking(){sendP({type:'top',values:S.selected.slice()});S.ranked=S.selected.slice();show('rankScreen');buildRankList();sendP({type:'ranked',values:S.ranked.slice()});saveS();}
+function buildRankList(){
+  var list=document.getElementById('rankList');list.innerHTML='';var lim=S.currentLimit;
+  for(var i=0;i<S.ranked.length;i++){var v=valById(S.ranked[i]);if(!v)continue;var cat=CATS[v.cat]||{};var cut=i>=lim;
+    var item=document.createElement('div');item.className='rank-item'+(cut?' cut':'');item.setAttribute('data-idx',i);if(!cut)item.setAttribute('draggable','true');
+    item.innerHTML='<span class="rank-handle">'+(cut?'\u2715':'\u2630')+'</span><span class="rank-num">'+(i+1)+'</span><div style="flex:1"><div class="rank-name">'+v.pl+'</div><div class="rank-cat">'+(cat.pl||'')+' \u00b7 '+v.en+'</div></div>';
+    if(!cut){item.addEventListener('dragstart',dS);item.addEventListener('dragover',dO);item.addEventListener('drop',dD);item.addEventListener('dragend',dE);item.addEventListener('touchstart',tS,{passive:false});item.addEventListener('touchmove',tM,{passive:false});item.addEventListener('touchend',tE);}
+    list.appendChild(item);}
+  var st=document.getElementById('rankStatus');
+  if(lim>5)st.textContent=lim<S.maxSelect?'Zredukowano do '+lim+' \u2014 zmień kolejność jeśli chcesz!':'';
+  else st.textContent='';
+}
+function updateRankScr(){buildRankList();sendP({type:'rerank',values:S.ranked.slice()});}
+function reorder(f,t){if(f===t||f>=S.currentLimit||t>=S.currentLimit)return;var it=S.ranked.splice(f,1)[0];S.ranked.splice(t,0,it);buildRankList();sendP({type:'rerank',values:S.ranked.slice()});saveS();}
+function dS(e){S.dragSrcIdx=parseInt(this.getAttribute('data-idx'));this.classList.add('dragging');e.dataTransfer.effectAllowed='move';}
+function dO(e){e.preventDefault();this.classList.add('drag-over');}
+function dD(e){e.preventDefault();this.classList.remove('drag-over');reorder(S.dragSrcIdx,parseInt(this.getAttribute('data-idx')));}
+function dE(){this.classList.remove('dragging');}
+var _tEl,_tCl,_tI;
+function tS(e){_tI=parseInt(this.getAttribute('data-idx'));_tEl=this;this.classList.add('dragging');_tCl=this.cloneNode(true);_tCl.style.cssText='position:fixed;z-index:9999;width:'+this.offsetWidth+'px;opacity:.85;pointer-events:none;left:'+this.getBoundingClientRect().left+'px;top:'+(e.touches[0].clientY-30)+'px;';document.body.appendChild(_tCl);}
+function tM(e){e.preventDefault();if(!_tCl)return;_tCl.style.top=(e.touches[0].clientY-30)+'px';var items=document.querySelectorAll('#rankList .rank-item:not(.cut)');for(var i=0;i<items.length;i++){var r=items[i].getBoundingClientRect();items[i].classList.toggle('drag-over',e.touches[0].clientY>r.top&&e.touches[0].clientY<r.bottom);}}
+function tE(e){if(_tEl)_tEl.classList.remove('dragging');if(_tCl){document.body.removeChild(_tCl);_tCl=null;}var items=document.querySelectorAll('#rankList .rank-item:not(.cut)');var di=_tI;var ty=e.changedTouches[0].clientY;for(var i=0;i<items.length;i++){items[i].classList.remove('drag-over');var r=items[i].getBoundingClientRect();if(ty>r.top&&ty<r.bottom)di=parseInt(items[i].getAttribute('data-idx'));}reorder(_tI,di);_tEl=null;}
+function showFinal(){
+  // If teams enabled, go to team choose instead of result
+  if(S._teams&&S._teams.length&&!S.myTeam){showTeamChoose();return;}
+  if(S.myTeam){showStudentTeamView();return;}
+  show('resultScreen');var list=document.getElementById('resultList');list.innerHTML='';var top5=S.ranked.slice(0,5);
+  for(var i=0;i<top5.length;i++){var v=valById(top5[i]);if(!v)continue;var cat=CATS[v.cat]||{};var d=document.createElement('div');d.className='result-value';d.style.animationDelay=(i*0.15)+'s';d.innerHTML='<div class="result-rank">'+(i+1)+'</div><div><div class="result-name">'+v.pl+'</div><div class="result-cat">'+(cat.pl||'')+' \u00b7 '+v.en+'</div></div>';list.appendChild(d);}
+  saveS();
+}
+function showTeamChoose(){
+  show('teamScreen');var p=document.getElementById('teamChoosePanel');p.innerHTML='';
+  p.innerHTML='<h3>Wybierz swój zespół</h3><p>Kliknij osobę i zatwierdź wybór</p>';
+  var teams=S._teams||TEAMS;
+  for(var i=0;i<teams.length;i++){(function(t){
+    var btn=document.createElement('div');btn.className='team-btn'+(S.myTeam===t.id?' joined':'');
+    btn.innerHTML='<div class="tb-name">'+t.name+'</div><div class="tb-desc">'+t.desc+'</div>';
+    btn.addEventListener('click',function(){S.myTeam=t.id;var all=p.querySelectorAll('.team-btn');for(var j=0;j<all.length;j++)all[j].classList.remove('joined');btn.classList.add('joined');});
+    p.appendChild(btn);
+  })(teams[i]);}
+  var confirm=document.createElement('button');confirm.className='big-btn';confirm.style.cssText='margin-top:16px;width:100%';confirm.textContent='Zatwierdź wybór \u2192';
+  confirm.addEventListener('click',function(){
+    if(!S.myTeam){return;}
+    sendP({type:'team',team:S.myTeam});showStudentTeamView();saveS();
+  });
+  p.appendChild(confirm);saveS();
+}
+function showStudentTeamView(){
+  show('studentTeamView');
+  var team=TEAMS.find(function(t){return t.id===S.myTeam;});if(!team)return;
+  document.getElementById('stTeamName').textContent='Zesp\u00f3\u0142 - '+team.name;
+  var menu=document.getElementById('stMobileMenu');menu.innerHTML='';
+  var views=['Moje wartości','BIO Lidera','Wartości lidera','Statystyki zespołu'];
+  var content=document.getElementById('stTeamContent');
+  var desknav=document.getElementById('stDesktopNav');desknav.innerHTML='';
+  var brand=document.createElement('span');brand.className='nav-brand';brand.textContent='Zesp\u00f3\u0142 - '+team.name;desknav.appendChild(brand);
+  function showView(idx){
+    content.innerHTML='';menu.classList.remove('open');
+    for(var k=0;k<menu.children.length;k++)menu.children[k].classList.toggle('active',k===idx);var dbtns=desknav.querySelectorAll('.nav-btn');for(var k2=0;k2<dbtns.length;k2++)dbtns[k2].classList.toggle('active',k2===idx);
+    if(idx===0){
+      var top5=S.ranked.slice(0,5);
+      content.innerHTML='<div class="result-card" style="border:none"><h2>🏆 Twoje 5 kluczowych wartości</h2></div>';
+      var card=content.querySelector('.result-card');
+      for(var i=0;i<top5.length;i++){var v=valById(top5[i]);if(!v)continue;var cat=CATS[v.cat]||{};
+        card.innerHTML+='<div class="result-value" style="animation-delay:'+(i*0.1)+'s"><div class="result-rank">'+(i+1)+'</div><div><div class="result-name">'+v.pl+'</div><div class="result-cat">'+(cat.pl||'')+' \u00b7 '+v.en+'</div></div></div>';}
+    }
+    else if(idx===1){content.innerHTML='<div class="bio-text">'+team.bio+'</div>';}
+    else if(idx===2){buildLeaderValuesExercise(content,team);}
+    else if(idx===3){
+      var ts=S._teamStats&&S._teamStats[S.myTeam];
+      if(!ts||!ts.total){content.innerHTML='<p style="text-align:center;color:var(--muted);margin-top:24px">Brak danych zespo\u0142u. Poczekaj na aktualizacj\u0119 od prowadz\u0105cego.</p>';return;}
+      buildStudentTeamDash(content,ts,team.name);
+    }
+  }
+  for(var vi=0;vi<views.length;vi++){(function(i){var btn=document.createElement('button');btn.className=i===0?'active':'';btn.textContent=views[i];btn.addEventListener('click',function(){showView(i);});menu.appendChild(btn);})(vi);}
+  showView(0);saveS();
+}
+
+var params=new URLSearchParams(window.location.search);var rp=params.get('room');if(rp)initStudent(rp.toUpperCase());
+function buildStudentTeamDash(container,ts,teamName){
+  container.innerHTML='<div class="page-sub" style="margin-bottom:12px">'+esc(teamName)+' — Top 5 — '+ts.total+' studentów</div>';
+  var grid=document.createElement('div');grid.className='dash-grid';
+  var svgId='stTeamDashSvg',ttId='stTeamDashTT';
+  var c0=document.createElement('div');c0.className='dash-card fullcard ring-small';
+  c0.innerHTML='<h3>Koło Schwartza</h3><div class="heatmap-wrap"><svg id="'+svgId+'" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="'+ttId+'"></div></div>';
+  grid.appendChild(c0);
+  setTimeout(function(){buildRingFromStats(svgId,ts);},50);
+  var vc=ts.vc;var c1=mkCard('Top 10 wartości');
+  var sorted=Object.keys(vc).map(function(k){return{id:parseInt(k),c:vc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+  var maxV=sorted.length?sorted[0].c:1;
+  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,CATS[sv?sv.cat:'']?CATS[sv.cat].color:'#C5A55A'));}
+  grid.appendChild(c1.el);
+  var c2=mkCard('Ranking kategorii');
+  var catArr=CO.map(function(ck){return{key:ck,c:ts.cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
+  var maxCat=catArr.length?catArr[0].c:1;
+  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,CATS[catArr[j].key].color));
+  grid.appendChild(c2.el);
+  var c3=mkCard('Wymiary Schwartza');
+  var dCol={openness:'#E74C3C',enhancement:'#E67E22',conservation:'#2980B9',transcendence:'#9B59B6'};
+  var dimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(ts.cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
+  var maxDim=dimArr.length?dimArr[0].c:1;
+  for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
+  grid.appendChild(c3.el);
+  container.appendChild(grid);
+}
+function buildRingFromStats(svgId,ts){
+  var svg=document.getElementById(svgId);if(!svg)return;svg.innerHTML='';var cx=300,cy=300,R=240,r2=80,n=CO.length,st=360/n;
+  svg.appendChild(svgE('circle',{cx:cx,cy:cy,r:R+2,fill:'none',stroke:'rgba(255,255,255,0.08)','stroke-width':1}));
+  var cc=ts.cc;var maxC=1;for(var ck in CATS)if(cc[ck])maxC=Math.max(maxC,cc[ck]);
+  for(var i=0;i<n;i++){var sa=-90+i*st,ea=sa+st;var cat=CO[i];
+    var c=cc[cat]||0;var inten=Math.min(c/Math.max(maxC,1),1);
+    svg.appendChild(svgE('path',{d:arcP(cx,cy,r2,R,sa,ea),fill:hR('#E8820C',0.04+inten*0.7),stroke:'rgba(255,255,255,0.12)','stroke-width':1.5}));
+    var ma=sa+st/2;var lr=R*0.78,lx=cx+lr*Math.cos(ma*Math.PI/180),ly=cy+lr*Math.sin(ma*Math.PI/180);
+    var lb=svgE('text',{x:lx,y:ly,fill:'#fff','font-size':'11.5','font-weight':'700','text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none'});lb.textContent=CATS[cat].pl;var rot=ma;if(rot>90&&rot<270)rot+=180;lb.setAttribute('transform','rotate('+rot+','+lx+','+ly+')');svg.appendChild(lb);
+    var cr2m=R*0.52,ccx2=cx+cr2m*Math.cos(ma*Math.PI/180),ccy2=cy+cr2m*Math.sin(ma*Math.PI/180);
+    var cntT=svgE('text',{x:ccx2,y:ccy2,fill:'#fff','font-size':'24','font-weight':'900','text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none',opacity:'0.9'});cntT.textContent=c>0?c:'';svg.appendChild(cntT);
+  }
+  var outerR=R+28;var defs2=svgE('defs',{});svg.appendChild(defs2);
+  for(var di=0;di<DIM_ARCS.length;di++){var dd=DIM_ARCS[di];var fa=-90+dd.from*st,ta=-90+dd.to*st;var midA=(fa+ta)/2;
+    var label=DIMS[dd.dim].pl.toUpperCase();var arcR=outerR;
+    var needFlip=(midA>90&&midA<270);var startA=needFlip?ta:fa,endA=needFlip?fa:ta;
+    var pathId='stArc_'+svgId+'_'+di;
+    var sar=startA*Math.PI/180,ear=endA*Math.PI/180;
+    var sx=cx+arcR*Math.cos(sar),sy=cy+arcR*Math.sin(sar);
+    var ex=cx+arcR*Math.cos(ear),ey=cy+arcR*Math.sin(ear);
+    var sweep=needFlip?0:1;var lg=Math.abs(endA-startA)>180?1:0;
+    var pd='M'+sx+','+sy+' A'+arcR+','+arcR+' 0 '+lg+' '+sweep+' '+ex+','+ey;
+    defs2.appendChild(svgE('path',{id:pathId,d:pd,fill:'none',stroke:'none'}));
+    var txt=svgE('text',{fill:'#fff','font-size':'10','font-weight':'600','letter-spacing':'3',opacity:'0.55'});
+    var tp=svgE('textPath',{});tp.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href','#'+pathId);tp.setAttribute('startOffset','50%');tp.setAttribute('text-anchor','middle');
+    tp.textContent=label;txt.appendChild(tp);svg.appendChild(txt);}
+  svg.appendChild(svgE('circle',{cx:cx,cy:cy,r:r2-4,fill:'#0F1923',stroke:'rgba(255,255,255,0.1)','stroke-width':1}));
+  var t1=svgE('text',{x:cx,y:cy-8,fill:'#C5A55A','font-size':'14','font-weight':'700','text-anchor':'middle'});t1.textContent='Top 5';svg.appendChild(t1);
+  var t2=svgE('text',{x:cx,y:cy+12,fill:'#8A9BB0','font-size':'11','text-anchor':'middle'});t2.textContent=ts.total+' studentów';svg.appendChild(t2);
+}
+function buildLeaderValuesExercise(container,team){
+  // State stored on S
+  if(!S.leaderEx)S.leaderEx={dims:[],cats:[],vals:[]};
+  container.innerHTML='';
+  // Step 1: Rank 4 dimensions
+  var s1=document.createElement('div');s1.className='lv-section';
+  s1.innerHTML='<h3>Krok 1: Uszereguj 4 wymiary warto\u015bci</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Kt\u00f3ry wymiar najlepiej opisuje '+team.name+'? Przeci\u0105gnij od najwa\u017cniejszego (1) do najmniej wa\u017cnego (4).</p>';
+  var dimOrder=S.leaderEx.dims.length===4?S.leaderEx.dims:['openness','enhancement','conservation','transcendence'];
+  S.leaderEx.dims=dimOrder;
+  for(var i=0;i<dimOrder.length;i++){
+    var d=document.createElement('div');d.className='lv-rank-item';d.setAttribute('data-idx',i);d.setAttribute('draggable','true');
+    d.innerHTML='<span class="rank-num">'+(i+1)+'</span><span class="rank-name">'+DIMS[dimOrder[i]].pl+'</span>';
+    d.addEventListener('dragstart',function(e){this._idx=parseInt(this.getAttribute('data-idx'));this.classList.add('dragging');});
+    d.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
+    d.addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');var from=e.dataTransfer?parseInt(document.querySelector('.lv-rank-item.dragging').getAttribute('data-idx')):0;var to=parseInt(this.getAttribute('data-idx'));if(from!==to){var it=S.leaderEx.dims.splice(from,1)[0];S.leaderEx.dims.splice(to,0,it);buildLeaderValuesExercise(container,team);}});
+    d.addEventListener('dragend',function(){this.classList.remove('dragging');});
+    s1.appendChild(d);
+  }
+  container.appendChild(s1);
+  // Step 2: Select categories (10 Schwartz)
+  var s2=document.createElement('div');s2.className='lv-section';
+  s2.innerHTML='<h3>Krok 2: Kt\u00f3re kategorie pasuj\u0105 do '+team.name+'?</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Wybierz kategorie warto\u015bci, kt\u00f3re wed\u0142ug Was najlepiej opisuj\u0105 tego lidera.</p>';
+  var chipWrap=document.createElement('div');chipWrap.style.cssText='display:flex;flex-wrap:wrap;gap:4px';
+  for(var ci=0;ci<CO.length;ci++){(function(ck){
+    var chip=document.createElement('span');chip.className='lv-chip'+(S.leaderEx.cats.indexOf(ck)>=0?' selected':'');
+    chip.textContent=CATS[ck].pl;
+    chip.addEventListener('click',function(){var idx2=S.leaderEx.cats.indexOf(ck);if(idx2>=0)S.leaderEx.cats.splice(idx2,1);else S.leaderEx.cats.push(ck);chip.classList.toggle('selected');});
+    chipWrap.appendChild(chip);
+  })(CO[ci]);}
+  s2.appendChild(chipWrap);container.appendChild(s2);
+  // Step 3: Pick 5 individual values
+  var s3=document.createElement('div');s3.className='lv-section';
+  s3.innerHTML='<h3>Krok 3: Wybierz 5 kluczowych warto\u015bci '+team.name+'</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Spo\u015br\u00f3d 58 warto\u015bci wybierz dok\u0142adnie 5.</p><div class="selection-counter">Wybrano: <span id="lvCount">'+S.leaderEx.vals.length+'</span> / 5</div>';
+  var vgrid=document.createElement('div');vgrid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:300px;overflow-y:auto;padding:4px';
+  for(var vi=0;vi<VALUES.length;vi++){(function(v){
+    var card=document.createElement('div');card.className='value-card'+(S.leaderEx.vals.indexOf(v.id)>=0?' selected':'');card.style.padding='8px 10px';card.style.minHeight='auto';
+    card.innerHTML='<div class="value-dot" style="background:'+CATS[v.cat].color+'"></div><div class="value-label">'+v.pl+'</div>';
+    card.addEventListener('click',function(){var idx3=S.leaderEx.vals.indexOf(v.id);if(idx3>=0){S.leaderEx.vals.splice(idx3,1);card.classList.remove('selected');}else{if(S.leaderEx.vals.length>=5)return;S.leaderEx.vals.push(v.id);card.classList.add('selected');}var ce=document.getElementById('lvCount');if(ce)ce.textContent=S.leaderEx.vals.length;});
+    vgrid.appendChild(card);
+  })(VALUES[vi]);}
+  s3.appendChild(vgrid);
+  var saveBtn=document.createElement('button');saveBtn.className='big-btn';saveBtn.style.cssText='margin-top:12px;width:100%;padding:14px';saveBtn.textContent='Zapisz ocen\u0119 lidera';
+  saveBtn.addEventListener('click',function(){sendP({type:'leaderEx',dims:S.leaderEx.dims,cats:S.leaderEx.cats,vals:S.leaderEx.vals});saveBtn.textContent='\u2713 Zapisano!';saveBtn.disabled=true;saveS();});
+  s3.appendChild(saveBtn);
+  container.appendChild(s3);
+}
+return{startPresenter:startPresenter,setMaxMembers:setMaxMembers,nav:nav,showScreen:show,adminTab:adminTab,toggleTeams:toggleTeams,reduceByOne:reduceByOne,onDashSlider:onDashSlider,joinManually:function(){var c=document.getElementById('manualRoomInput').value.trim().toUpperCase();if(c.length===5)initStudent(c);},startStudentFlow:startStudentFlow,goToRanking:goToRanking};
+})();
+</script>
+</body></html>
