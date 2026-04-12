@@ -346,20 +346,34 @@ function nav(page){
 }
 
 // PRESENTER
-function startPresenter(){S.mode='presenter';S.roomCode=genRoom();document.getElementById('topNav').classList.remove('hidden');show('canvasPage');nav('canvasPage');buildCanvas();initPeer();takeSnap(10);}
+function startPresenter(){S.mode='presenter';S.roomCode=genRoom();document.getElementById('topNav').classList.remove('hidden');show('canvasPage');nav('canvasPage');buildCanvas();initPeer();takeSnap(10);setInterval(function(){broadcast({type:'ping'});},15000);}
 function initPeer(){
   var pid='val-'+S.roomCode.toLowerCase();S.peer=new Peer(pid);
   S.peer.on('connection',function(conn){S.connections.push(conn);conn.on('open',function(){conn.send({type:'setLimit',limit:S.currentLimit});if(S.teamsEnabled)conn.send({type:'teamsOn',teams:TEAMS.map(function(t){return{id:t.id,name:t.name,desc:t.desc};})});});conn.on('data',function(d){onSMsg(conn.peer,d);});conn.on('close',function(){S.connections=S.connections.filter(function(c){return c.peer!==conn.peer;});upAll();});upAll();});
 }
 function onSMsg(pid,d){
-  if(d.type==='join'){var reqName=String(d.name||'').trim();for(var p2 in S.studentData){if(p2!==pid&&S.studentData[p2].name&&S.studentData[p2].name.toLowerCase()===reqName.toLowerCase()){sendTo(pid,{type:'nameError',msg:'To imię jest już zajęte.'});return;}}}
+  if(d.type==='pong'){if(S.studentData[pid])S.studentData[pid].lastSeen=Date.now();return;}
+  if(d.type==='join'){
+    var reqName=String(d.name||'').trim();
+    for(var p2 in S.studentData){
+      if(p2!==pid&&S.studentData[p2].name&&S.studentData[p2].name.toLowerCase()===reqName.toLowerCase()){
+        var oldConn=S.connections.find(function(c){return c.peer===p2;});
+        if(oldConn&&oldConn.open){sendTo(pid,{type:'nameError',msg:'To imi\u0119 jest ju\u017c zaj\u0119te.'});return;}
+        S.studentData[pid]=S.studentData[p2];S.studentData[pid].connId=pid;
+        delete S.studentData[p2];
+        S.connections=S.connections.filter(function(c){return c.peer!==p2;});
+        break;
+      }
+    }
+  }
   if(!S.studentData[pid])S.studentData[pid]={connId:pid};var sd=S.studentData[pid];
-  if(d.type==='join'){sd.name=String(d.name||'').trim();sd.phase='selecting';}
-  else if(d.type==='top'){sd.top10=d.values;sd.phase='ranking';}
+  if(d.type==='join'){sd.name=String(d.name||'').trim();if(!sd.ranked)sd.phase='selecting';}
+  else if(d.type==='top'){sd.top10=d.values;if(!sd.ranked)sd.phase='ranking';}
   else if(d.type==='ranked'){sd.ranked=d.values;sd.phase='waiting';}
   else if(d.type==='rerank'){sd.ranked=d.values;}
   else if(d.type==='team'){sd.team=d.team;sd.phase='teams';}
   else if(d.type==='leaderEx'){sd.leaderEx=d;}
+  sd.lastSeen=Date.now();
   upAll();
 }
 function broadcast(m){for(var i=0;i<S.connections.length;i++)if(S.connections[i].open)S.connections[i].send(m);}

@@ -191,9 +191,15 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .tt-vhelp{display:inline-block;width:16px;height:16px;line-height:16px;text-align:center;border-radius:50%;background:var(--card2);color:var(--muted);font-size:.65rem;cursor:pointer;vertical-align:middle;margin-left:4px}
 .tt-vdesc{display:none;font-size:.72rem;color:var(--muted);padding:2px 0 4px;line-height:1.4}
 .tt-cdesc{font-size:.75rem;color:var(--muted);margin-bottom:8px;line-height:1.4;font-style:italic}
+.conn-indicator{position:fixed;top:8px;right:8px;z-index:600;display:flex;align-items:center;gap:6px;background:var(--card);padding:4px 10px;border-radius:16px;font-size:.72rem;border:1px solid var(--border)}
+.conn-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.conn-dot.ok{background:#2ecc71}
+.conn-dot.err{background:var(--red);animation:connBlink 1s infinite}
+@keyframes connBlink{50%{opacity:.3}}
 </style>
 </head>
 <body>
+<div class="conn-indicator" id="connInd" style="display:none"><span class="conn-dot" id="connDot"></span><span id="connLabel"></span></div>
 
 <nav id="topNav" class="top-nav hidden">
   <span class="nav-brand">Wartości Lidera</span>
@@ -309,16 +315,29 @@ function nav(page){
 }
 
 // PRESENTER
-function startPresenter(){S.mode='presenter';S.roomCode=genRoom();document.getElementById('topNav').classList.remove('hidden');document.getElementById('startScreen').classList.add('hidden');nav('canvasPage');buildCanvas();initPeer();takeSnap(10);}
+function startPresenter(){S.mode='presenter';S.roomCode=genRoom();document.getElementById('topNav').classList.remove('hidden');document.getElementById('startScreen').classList.add('hidden');nav('canvasPage');buildCanvas();initPeer();takeSnap(10);setInterval(function(){broadcast({type:'ping'});},15000);}
 function initPeer(){
   var pid='val-'+S.roomCode.toLowerCase();S.peer=new Peer(pid);
   S.peer.on('connection',function(conn){S.connections.push(conn);conn.on('open',function(){conn.send({type:'setLimit',limit:S.currentLimit});if(S.teamsEnabled)conn.send({type:'teamsOn',teams:TEAMS.map(function(t){return{id:t.id,name:t.name,desc:t.desc};})});});conn.on('data',function(d){onSMsg(conn.peer,d);});conn.on('close',function(){S.connections=S.connections.filter(function(c){return c.peer!==conn.peer;});upAll();});upAll();});
 }
 function onSMsg(pid,d){
-  if(d.type==='join'){var reqName=String(d.name||'').trim();for(var p2 in S.studentData){if(p2!==pid&&S.studentData[p2].name&&S.studentData[p2].name.toLowerCase()===reqName.toLowerCase()){sendTo(pid,{type:'nameError',msg:'To imi\u0119 jest ju\u017c zaj\u0119te.'});return;}}}
+  if(d.type==='pong'){if(S.studentData[pid])S.studentData[pid].lastSeen=Date.now();return;}
+  if(d.type==='join'){
+    var reqName=String(d.name||'').trim();
+    for(var p2 in S.studentData){
+      if(p2!==pid&&S.studentData[p2].name&&S.studentData[p2].name.toLowerCase()===reqName.toLowerCase()){
+        var oldConn=S.connections.find(function(c){return c.peer===p2;});
+        if(oldConn&&oldConn.open){sendTo(pid,{type:'nameError',msg:'To imi\u0119 jest ju\u017c zaj\u0119te.'});return;}
+        S.studentData[pid]=S.studentData[p2];S.studentData[pid].connId=pid;
+        delete S.studentData[p2];
+        S.connections=S.connections.filter(function(c){return c.peer!==p2;});
+        break;
+      }
+    }
+  }
   if(!S.studentData[pid])S.studentData[pid]={connId:pid};var sd=S.studentData[pid];
-  if(d.type==='join'){sd.name=String(d.name||'').trim();sd.phase='selecting';}
-  else if(d.type==='top'){sd.top10=d.values;sd.phase='ranking';}
+  if(d.type==='join'){sd.name=String(d.name||'').trim();if(!sd.ranked)sd.phase='selecting';}
+  else if(d.type==='top'){sd.top10=d.values;if(!sd.ranked)sd.phase='ranking';}
   else if(d.type==='ranked'){sd.ranked=d.values;sd.phase='waiting';}
   else if(d.type==='rerank'){sd.ranked=d.values;}
   else if(d.type==='team'){sd.team=d.team;sd.phase='teams';}
@@ -570,12 +589,36 @@ function startStudentFlow(){
   err.textContent='';S.studentName=name;connectP(function(){show('selectScreen');buildSelGrid();});
 }
 function connectP(cb){
-  var hid='val-'+S.roomCode.toLowerCase();S.peer=new Peer();
-  S.peer.on('open',function(){S.conn=S.peer.connect(hid,{reliable:true});S.conn.on('open',function(){S.conn.send({type:'join',name:S.studentName});if(cb)cb();});S.conn.on('data',function(d){onPMsg(d);});S.conn.on('error',function(){if(cb)cb();});});
-  S.peer.on('error',function(){if(cb)cb();});
+  var hid='val-'+S.roomCode.toLowerCase();
+  if(S.peer){try{S.peer.destroy();}catch(e){}}
+  S.peer=new Peer();
+  S._connOk=false;updateConnUI(false);
+  S.peer.on('open',function(){
+    S.conn=S.peer.connect(hid,{reliable:true});
+    S.conn.on('open',function(){
+      S._connOk=true;updateConnUI(true);
+      S.conn.send({type:'join',name:S.studentName});
+      if(S.selected.length)S.conn.send({type:'top',values:S.selected.slice()});
+      if(S.ranked.length)S.conn.send({type:'ranked',values:S.ranked.slice()});
+      if(S.myTeam)S.conn.send({type:'team',team:S.myTeam});
+      if(cb){cb();cb=null;}
+    });
+    S.conn.on('data',function(d){onPMsg(d);});
+    S.conn.on('close',function(){S._connOk=false;updateConnUI(false);scheduleReconnect();});
+    S.conn.on('error',function(){S._connOk=false;updateConnUI(false);if(cb){cb();cb=null;}scheduleReconnect();});
+  });
+  S.peer.on('error',function(){S._connOk=false;updateConnUI(false);if(cb){cb();cb=null;}scheduleReconnect();});
+}
+function scheduleReconnect(){if(S._reconnTimer)return;S._reconnTimer=setTimeout(function(){S._reconnTimer=null;connectP();},3000);}
+function updateConnUI(ok){
+  var ind=document.getElementById('connInd');if(!ind||S.mode!=='student')return;
+  ind.style.display='flex';
+  document.getElementById('connDot').className='conn-dot '+(ok?'ok':'err');
+  document.getElementById('connLabel').textContent=ok?'Połączono':'Łączenie...';
 }
 function sendP(d){if(S.conn&&S.conn.open)S.conn.send(d);}
 function onPMsg(d){
+  if(d.type==='ping'){sendP({type:'pong'});return;}
   if(d.type==='setLimit'){S.maxSelect=d.limit;S.currentLimit=d.limit;var ml=document.getElementById('maxSelectLabel');if(ml)ml.textContent=d.limit;var mc=document.getElementById('maxSelectCount');if(mc)mc.textContent=d.limit;updateSelCount();}
   else if(d.type==='reduce'){S.currentLimit=d.limit;updateRankScr();saveS();}
   else if(d.type==='final'){S.currentLimit=5;showFinal();saveS();}
