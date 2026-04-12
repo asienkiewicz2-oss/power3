@@ -379,20 +379,152 @@ var TEAMS=[
 ];
 
 
-// SUPABASE
+// SUPABASE v2 — normalized DB (sessions, teams, students)
 var SB_URL='https://mtzljhhmnzhkovzbsonm.supabase.co';
 var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10emxqaGhtbnpoa292emJzb25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDc1MzEsImV4cCI6MjA5MTU4MzUzMX0.FHkMuRNvaPzFQvVsvzUFRl7oDU8EvOqqZAKplwRKzks';
-var SB_SID=null;var _sbTimer=null;
+var SB_SID=null;var _sbTimer=null;var _sbStudentTimer=null;
 function sbFetch(p,o){o=o||{};var h={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};if(o.prefer)h['Prefer']=o.prefer;return fetch(SB_URL+'/rest/v1/'+p,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined});}
-function _buildSnap(){var snap={room:S.roomCode,studentData:{},teamsEnabled:S.teamsEnabled,maxMembers:S.maxMembers,currentLimit:S.currentLimit,snapshots:S.snapshots};for(var pid in S.studentData){var sd=S.studentData[pid];snap.studentData[pid]={connId:sd.connId,name:sd.name,top10:sd.top10,ranked:sd.ranked,phase:sd.phase,team:sd.team,leaderEx:sd.leaderEx};}return snap;}
-function sbSave(){if(!SB_SID||S.mode!=='presenter')return;clearTimeout(_sbTimer);_sbTimer=setTimeout(function(){sbFetch('sessions?id=eq.'+SB_SID,{method:'PATCH',body:{data:_buildSnap()}});},2000);}
-function sbLoadActive(cb){sbFetch('sessions?is_active=eq.true&order=created_at.desc&limit=1').then(function(r){return r.json();}).then(function(rows){if(rows.length&&rows[0].data&&rows[0].data.room){SB_SID=rows[0].id;cb(rows[0].data);}else cb(null);}).catch(function(){cb(null);});}
-function sbCreateSession(rc,cb){sbFetch('sessions',{method:'POST',body:{room_code:rc,is_active:true,data:{}},prefer:'return=representation'}).then(function(r){return r.json();}).then(function(rows){if(rows&&rows.length)SB_SID=rows[0].id;if(cb)cb();}).catch(function(e){console.error('SB:',e);if(cb)cb();});}
+
+// --- Device fingerprint ---
+function _deviceId(){
+  var stored=null;try{stored=localStorage.getItem('_device_id');}catch(e){}
+  if(stored)return stored;
+  var fp='';try{var c=document.createElement('canvas');var ctx=c.getContext('2d');ctx.textBaseline='top';ctx.font='14px Arial';ctx.fillText('fp',2,2);fp=c.toDataURL();}catch(e){}
+  var raw=navigator.userAgent+'|'+screen.width+'x'+screen.height+'|'+(navigator.language||'')+'|'+fp;
+  var hash=0;for(var i=0;i<raw.length;i++){hash=((hash<<5)-hash)+raw.charCodeAt(i);hash|=0;}
+  var id='dev_'+Math.abs(hash).toString(36)+'_'+Date.now().toString(36);
+  try{localStorage.setItem('_device_id',id);}catch(e){}
+  return id;
+}
+var DEVICE_ID=_deviceId();
+
+// --- Session CRUD ---
+function sbCreateSession(rc,cb){
+  sbFetch('sessions',{method:'POST',body:{room_code:rc,is_active:true,teams_enabled:false,max_members:5,current_limit:10},prefer:'return=representation'}).then(function(r){return r.json();}).then(function(rows){
+    if(rows&&rows.length){SB_SID=rows[0].id;_sbEnsureTeams(SB_SID,function(){if(cb)cb();});}else{if(cb)cb();}
+  }).catch(function(e){console.error('SB create:',e);if(cb)cb();});
+}
+function _sbEnsureTeams(sid,cb){
+  var ops=TEAMS.map(function(t){return{id:sid+'_'+t.id,session_id:sid,leader_id:t.id};});
+  sbFetch('teams',{method:'POST',body:ops,prefer:'return=minimal'}).then(function(){if(cb)cb();}).catch(function(){if(cb)cb();});
+}
+function sbLoadActive(cb){
+  sbFetch('sessions?is_active=eq.true&order=created_at.desc&limit=1').then(function(r){return r.json();}).then(function(rows){
+    if(rows.length){SB_SID=rows[0].id;cb(rows[0]);}else cb(null);
+  }).catch(function(){cb(null);});
+}
 function sbDeactivateAll(cb){sbFetch('sessions?is_active=eq.true',{method:'PATCH',body:{is_active:false}}).then(function(){if(cb)cb();}).catch(function(){if(cb)cb();});}
+function sbSaveSession(){
+  if(!SB_SID||S.mode!=='presenter')return;
+  clearTimeout(_sbTimer);_sbTimer=setTimeout(function(){
+    sbFetch('sessions?id=eq.'+SB_SID,{method:'PATCH',body:{teams_enabled:S.teamsEnabled,max_members:S.maxMembers,current_limit:S.currentLimit}});
+  },1000);
+}
+function sbLoadHistory(cb){sbFetch('sessions?order=created_at.desc&limit=20&select=id,room_code,created_at,is_active').then(function(r){return r.json();}).then(function(rows){cb(rows);}).catch(function(){cb([]);});}
+
+// --- Team CRUD ---
+function sbSaveTeam(leaderId,data){
+  if(!SB_SID)return;
+  var tid=SB_SID+'_'+leaderId;
+  sbFetch('teams?id=eq.'+encodeURIComponent(tid),{method:'PATCH',body:data});
+}
+function sbLoadTeams(cb){
+  if(!SB_SID){cb([]);return;}
+  sbFetch('teams?session_id=eq.'+SB_SID).then(function(r){return r.json();}).then(function(rows){cb(rows||[]);}).catch(function(){cb([]);});
+}
+
+// --- Student CRUD ---
+function sbSaveStudent(studentId,data){
+  if(!SB_SID)return;
+  data.session_id=SB_SID;data.last_seen=new Date().toISOString();
+  sbFetch('students?id=eq.'+encodeURIComponent(studentId),{method:'PATCH',body:data});
+}
+function sbUpsertStudent(studentId,data,cb){
+  if(!SB_SID){if(cb)cb();return;}
+  data.id=studentId;data.session_id=SB_SID;data.last_seen=new Date().toISOString();
+  sbFetch('students',{method:'POST',body:data,prefer:'return=representation,resolution=merge-duplicates'}).then(function(r){return r.json();}).then(function(rows){if(cb)cb(rows&&rows[0]);}).catch(function(){if(cb)cb();});
+}
+function sbLoadStudents(cb){
+  if(!SB_SID){cb([]);return;}
+  sbFetch('students?session_id=eq.'+SB_SID).then(function(r){return r.json();}).then(function(rows){cb(rows||[]);}).catch(function(){cb([]);});
+}
+function sbFindStudentByDevice(deviceId,cb){
+  if(!SB_SID){cb(null);return;}
+  sbFetch('students?device_id=eq.'+encodeURIComponent(deviceId)+'&session_id=eq.'+SB_SID+'&limit=1').then(function(r){return r.json();}).then(function(rows){cb(rows&&rows.length?rows[0]:null);}).catch(function(){cb(null);});
+}
+function sbDeleteStudent(studentId){
+  if(!SB_SID)return;
+  sbFetch('students?id=eq.'+encodeURIComponent(studentId),{method:'DELETE'});
+}
+
+// --- Presenter: save all students to DB (debounced) ---
+function sbSaveAllStudents(){
+  if(!SB_SID||S.mode!=='presenter')return;
+  clearTimeout(_sbStudentTimer);_sbStudentTimer=setTimeout(function(){
+    for(var pid in S.studentData){
+      var sd=S.studentData[pid];
+      sbUpsertStudent(pid,{
+        name:sd.name||'',device_id:sd.deviceId||'',peer_id:pid,
+        team_id:sd.team?(SB_SID+'_'+sd.team):null,
+        top10:sd.top10||[],ranked:sd.ranked||[],
+        leader_ex:sd.leaderEx||null,phase:sd.phase||'selecting'
+      });
+    }
+  },2000);
+}
+
+// --- Presenter: full load from DB ---
+function sbLoadFullSession(cb){
+  sbLoadActive(function(sess){
+    if(!sess){cb(null);return;}
+    var result={room:sess.room_code,teamsEnabled:sess.teams_enabled,maxMembers:sess.max_members,currentLimit:sess.current_limit,studentData:{},teamData:{}};
+    sbLoadTeams(function(teams){
+      for(var ti=0;ti<teams.length;ti++){
+        var t=teams[ti];
+        result.teamData[t.leader_id]={customName:t.custom_name,photo:t.photo,notes:t.notes};
+      }
+      sbLoadStudents(function(students){
+        for(var si=0;si<students.length;si++){
+          var st=students[si];
+          var teamLeaderId=st.team_id?st.team_id.replace(SB_SID+'_',''):null;
+          result.studentData[st.peer_id||st.id]={
+            connId:st.peer_id||st.id,name:st.name,deviceId:st.device_id,
+            top10:st.top10||[],ranked:st.ranked||[],
+            phase:st.phase||'selecting',team:teamLeaderId,
+            leaderEx:st.leader_ex||null
+          };
+        }
+        cb(result);
+      });
+    });
+  });
+}
+
+// --- Student: save own state to DB ---
+function sbSaveStudentSelf(){
+  if(!SB_SID||S.mode!=='student')return;
+  clearTimeout(_sbStudentTimer);_sbStudentTimer=setTimeout(function(){
+    var teamId=S.myTeam?(SB_SID+'_'+S.myTeam):null;
+    sbUpsertStudent(DEVICE_ID,{
+      name:S.studentName||'',device_id:DEVICE_ID,peer_id:S.conn?S.conn.provider:null,
+      team_id:teamId,top10:S.selected||[],ranked:S.ranked||[],
+      leader_ex:S.leaderEx||null,phase:curScreen()==='teamView'?'teams':'selecting'
+    });
+  },1500);
+}
+
+// --- Student: load own state from DB ---
+function sbLoadStudentSelf(cb){
+  if(!SB_SID){cb(null);return;}
+  sbFindStudentByDevice(DEVICE_ID,function(row){
+    if(!row){cb(null);return;}
+    cb({name:row.name,team:row.team_id?row.team_id.replace(SB_SID+'_',''):null,
+        top10:row.top10||[],ranked:row.ranked||[],
+        leaderEx:row.leader_ex||null,phase:row.phase});
+  });
+}
 function _clearTeamLS(){try{var keys=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&(k.indexOf('teamPhoto_')===0||k.indexOf('teamNotes_')===0||k.indexOf('teamName_')===0))keys.push(k);}for(var j=0;j<keys.length;j++)localStorage.removeItem(keys[j]);}catch(e){}}
 function newSession(){if(!confirm('Rozpocz\u0105\u0107 now\u0105 sesj\u0119? Aktualna zostanie zamkni\u0119ta.'))return;sbDeactivateAll(function(){clearPres();_clearTeamLS();S.studentData={};S.snapshots={};S.currentLimit=10;S.teamsEnabled=false;S.connections.forEach(function(c){try{c.close();}catch(e){}});S.connections=[];if(S.peer){try{S.peer.destroy();}catch(e){}}S.peer=null;var rc=genRoom();sbCreateSession(rc,function(){_applyPresData(null);});});}
-function sbLoadHistory(cb){sbFetch('sessions?order=created_at.desc&limit=20&select=id,room_code,created_at,is_active,data').then(function(r){return r.json();}).then(function(rows){cb(rows);}).catch(function(){cb([]);});}
-function sbLoadSessionById(sid,cb){sbFetch('sessions?id=eq.'+sid).then(function(r){return r.json();}).then(function(rows){if(rows.length){SB_SID=rows[0].id;cb(rows[0].data);}else cb(null);}).catch(function(){cb(null);});}
 var SK='values_explorer_student';
 var S={mode:null,roomCode:'',peer:null,connections:[],conn:null,studentData:{},currentLimit:10,snapshots:{},teamsEnabled:false,maxMembers:5,studentName:'',selected:[],ranked:[],maxSelect:10,myTeam:null,dashLimit:5,dashDims:['openness','enhancement','conservation','transcendence']};
 
@@ -411,7 +543,11 @@ function getCounts(lim,filterPids){
   var cc={};for(var ck in CATS){var cv=VALUES.filter(function(v){return v.cat===ck;});var c=0;for(var j=0;j<cv.length;j++)c+=(vc[cv[j].id]||0);cc[ck]=c;}cc._vc=vc;return cc;
 }
 function getTeamPids(tid){var r=[];for(var p in S.studentData)if(S.studentData[p].team===tid)r.push(p);return r;}
-function saveS(){if(S.mode!=='student')return;try{localStorage.setItem(SK,JSON.stringify({room:S.roomCode,name:S.studentName,selected:S.selected,ranked:S.ranked,maxSelect:S.maxSelect,currentLimit:S.currentLimit,team:S.myTeam,leaderEx:S.leaderEx||null,screen:curScreen()}));}catch(e){}}
+function saveS(){
+  if(S.mode!=='student')return;
+  try{localStorage.setItem(SK,JSON.stringify({room:S.roomCode,name:S.studentName,selected:S.selected,ranked:S.ranked,maxSelect:S.maxSelect,currentLimit:S.currentLimit,team:S.myTeam,leaderEx:S.leaderEx||null,screen:curScreen()}));}catch(e){}
+  sbSaveStudentSelf();
+}
 function curScreen(){if(!document.getElementById('studentTeamView').classList.contains('hidden'))return'teamView';if(!document.getElementById('teamScreen').classList.contains('hidden'))return'teamChoose';if(!document.getElementById('resultScreen').classList.contains('hidden'))return'result';if(!document.getElementById('rankScreen').classList.contains('hidden'))return'rank';if(!document.getElementById('selectScreen').classList.contains('hidden'))return'select';return'name';}
 function loadS(){try{return JSON.parse(localStorage.getItem(SK));}catch(e){return null;}}
 
@@ -424,7 +560,8 @@ function savePres(){
     for(var pid in S.studentData){var sd=S.studentData[pid];snap.studentData[pid]={connId:sd.connId,name:sd.name,top10:sd.top10,ranked:sd.ranked,phase:sd.phase,team:sd.team,leaderEx:sd.leaderEx};}
     localStorage.setItem(PK,JSON.stringify(snap));
   }catch(e){}
-  sbSave();
+  sbSaveSession();
+  sbSaveAllStudents();
 }
 function loadPres(){try{return JSON.parse(localStorage.getItem(PK));}catch(e){return null;}}
 function clearPres(){try{localStorage.removeItem(PK);}catch(e){}}
@@ -468,19 +605,21 @@ function _applyPresData(saved){
   if(saved&&saved.room){
     S.roomCode=saved.room;S.studentData=saved.studentData||{};S.teamsEnabled=saved.teamsEnabled||false;
     S.maxMembers=saved.maxMembers||5;S.currentLimit=saved.currentLimit||10;S.snapshots=saved.snapshots||{};
+    // Apply team data from DB to localStorage for buildPoster
+    if(saved.teamData){for(var lid in saved.teamData){var td=saved.teamData[lid];try{if(td.photo)localStorage.setItem('teamPhoto_'+lid,td.photo);if(td.notes)localStorage.setItem('teamNotes_'+lid,td.notes);if(td.customName)localStorage.setItem('teamName_'+lid,td.customName);}catch(e){}}}
   }else{S.roomCode=genRoom();}
   document.getElementById('topNav').classList.remove('hidden');document.getElementById('startScreen').classList.add('hidden');nav('canvasPage');buildCanvas();initPeer();
   if(!saved||!saved.room)takeSnap(10);
-  var tg=document.getElementById('teamToggle');if(tg)tg.checked=!!S.teamsEnabled;var tgr=document.getElementById('teamsGrid');if(tgr)tgr.style.display=S.teamsEnabled?'':  'none';
-  if(!SB_SID&&S.roomCode){sbCreateSession(S.roomCode,function(){sbSave();});}
+  var tg=document.getElementById('teamToggle');if(tg)tg.checked=!!S.teamsEnabled;var tgr=document.getElementById('teamsGrid');if(tgr)tgr.style.display=S.teamsEnabled?'':'none';
+  if(!SB_SID&&S.roomCode){sbCreateSession(S.roomCode,function(){});}
   setInterval(function(){broadcast({type:'ping'});},15000);
 }
 function startPresenter(){
-  sbLoadActive(function(dbData){
+  sbLoadFullSession(function(dbData){
     if(dbData&&dbData.room){_applyPresData(dbData);}
     else{
       var saved=loadPres();
-      if(saved&&saved.room){sbCreateSession(saved.room,function(){_applyPresData(saved);sbSave();});}
+      if(saved&&saved.room){sbCreateSession(saved.room,function(){_applyPresData(saved);savePres();});}
       else{var rc=genRoom();sbCreateSession(rc,function(){_applyPresData(null);});}
     }
   });
@@ -505,15 +644,15 @@ function onSMsg(pid,d){
     }
   }
   if(!S.studentData[pid])S.studentData[pid]={connId:pid};var sd=S.studentData[pid];
-  if(d.type==='join'){sd.name=String(d.name||'').trim();if(!sd.ranked)sd.phase='selecting';}
+  if(d.type==='join'){sd.name=String(d.name||'').trim();sd.deviceId=d.deviceId||'';if(!sd.ranked)sd.phase='selecting';}
   else if(d.type==='top'){sd.top10=d.values;if(!sd.ranked)sd.phase='ranking';}
   else if(d.type==='ranked'){sd.ranked=d.values;sd.phase='waiting';}
   else if(d.type==='rerank'){sd.ranked=d.values;}
   else if(d.type==='team'){sd.team=d.team;sd.phase='teams';}
   else if(d.type==='leaderEx'){sd.leaderEx=d;}
-  else if(d.type==='teamPhoto'){try{localStorage.setItem('teamPhoto_'+d.team,d.data);}catch(ex){}broadcast({type:'teamPhoto',team:d.team,data:d.data});}
-  else if(d.type==='teamNotes'){try{localStorage.setItem('teamNotes_'+d.team,d.data);}catch(ex){}broadcast({type:'teamNotes',team:d.team,data:d.data});}
-  else if(d.type==='teamName'){try{if(d.name)localStorage.setItem('teamName_'+d.team,d.name);else localStorage.removeItem('teamName_'+d.team);}catch(ex){}broadcast({type:'teamName',team:d.team,name:d.name});}
+  else if(d.type==='teamPhoto'){try{localStorage.setItem('teamPhoto_'+d.team,d.data);}catch(ex){}sbSaveTeam(d.team,{photo:d.data});broadcast({type:'teamPhoto',team:d.team,data:d.data});}
+  else if(d.type==='teamNotes'){try{localStorage.setItem('teamNotes_'+d.team,d.data);}catch(ex){}sbSaveTeam(d.team,{notes:d.data});broadcast({type:'teamNotes',team:d.team,data:d.data});}
+  else if(d.type==='teamName'){try{if(d.name)localStorage.setItem('teamName_'+d.team,d.name);else localStorage.removeItem('teamName_'+d.team);}catch(ex){}sbSaveTeam(d.team,{custom_name:d.name||null});broadcast({type:'teamName',team:d.team,name:d.name});}
   upAll();
 }
 function broadcast(m){for(var i=0;i<S.connections.length;i++)if(S.connections[i].open)S.connections[i].send(m);}
@@ -774,7 +913,12 @@ function mkBar(label,val,max,color){
 function onDashSlider(v){S.dashLimit=parseInt(v);document.getElementById('dashSliderVal').textContent=v;buildDash(parseInt(v));}
 
 // STUDENT
-function initStudent(rc){S.mode='student';S.roomCode=rc;var saved=loadS();
+function initStudent(rc){S.mode='student';S.roomCode=rc;
+  // Try to find active session for this room, set SB_SID
+  sbFetch('sessions?room_code=eq.'+encodeURIComponent(rc)+'&is_active=eq.true&limit=1').then(function(r){return r.json();}).then(function(rows){
+    if(rows&&rows.length)SB_SID=rows[0].id;
+  }).catch(function(){});
+  var saved=loadS();
   if(saved&&saved.room===rc&&saved.name&&saved.screen!=='name'){S.studentName=saved.name;S.selected=saved.selected||[];S.ranked=saved.ranked||[];S.maxSelect=saved.maxSelect||10;S.currentLimit=saved.currentLimit||10;S.myTeam=saved.team||null;S.leaderEx=saved.leaderEx||null;
     connectP(function(){
       if(saved.screen==='teamView'&&S.myTeam){showStudentTeamView();}
@@ -799,7 +943,7 @@ function connectP(cb){
     S.conn=S.peer.connect(hid,{reliable:true});
     S.conn.on('open',function(){
       S._connOk=true;updateConnUI(true);
-      S.conn.send({type:'join',name:S.studentName});
+      S.conn.send({type:'join',name:S.studentName,deviceId:DEVICE_ID});
       if(S.selected.length)S.conn.send({type:'top',values:S.selected.slice()});
       if(S.ranked.length)S.conn.send({type:'ranked',values:S.ranked.slice()});
       if(S.myTeam)S.conn.send({type:'team',team:S.myTeam});
