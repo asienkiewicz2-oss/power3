@@ -239,6 +239,19 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .people-list-compact div{padding:4px 0;border-bottom:1px solid var(--border);color:var(--text)}
 .leader-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
 
+.config-row{max-width:420px}
+.config-row .toggle-switch{width:52px;min-width:52px}
+.vbar-chart{display:flex;align-items:flex-end;gap:6px;height:180px;padding:8px 0;justify-content:center}
+.vbar-col{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;max-width:60px}
+.vbar-bar{width:100%;border-radius:4px 4px 0 0;transition:height .5s;display:flex;align-items:flex-start;justify-content:center;padding-top:2px;font-size:.62rem;font-weight:700;color:#fff;min-height:2px}
+.vbar-label{font-size:.58rem;color:var(--muted);text-align:center;margin-top:4px;line-height:1.2;word-break:break-word;max-width:60px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sylwetka-row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.sylwetka-row>div{flex:1;min-width:140px}
+.zespol-row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.zespol-row>div{flex:1;min-width:200px}
+.zespol-left{max-width:220px;flex:0 0 220px}
+@media(max-width:700px){.sylwetka-row,.zespol-row{flex-direction:column}.sylwetka-row>div,.zespol-row>div{min-width:100%;flex:1}.zespol-left{max-width:100%;flex:1}}
+
 </style>
 </head>
 <body>
@@ -348,7 +361,7 @@ var VDESC={1:"Wolność myśli i działania, możliwość samodzielnego decydowa
 var CDESC={"self-direction":"Niezależne myślenie i działanie — wybieranie, tworzenie, odkrywanie. Wywodzi się z potrzeby kontroli i autonomii.","stimulation":"Ekscytacja, nowość i wyzwania w życiu. Wywodzi się z potrzeby różnorodności i stymulacji dla optymalnego funkcjonowania.","hedonism":"Przyjemność i zmysłowe zaspokojenie dla samego siebie. Wywodzi się z potrzeby odczuwania radości.","achievement":"Osobisty sukces poprzez wykazanie kompetencji zgodnie ze standardami społecznymi. Dążenie do bycia lepszym.","power":"Status społeczny i prestiż, kontrola lub dominacja nad ludźmi i zasobami.","security":"Bezpieczeństwo, harmonia i stabilność społeczeństwa, relacji i samego siebie.","conformity":"Powstrzymywanie działań, skłonności i impulsów, które mogą szkodzić innym lub naruszać oczekiwania społeczne.","tradition":"Szacunek, zaangażowanie i akceptacja zwyczajów i idei, które tradycyjna kultura lub religia narzuca jednostce.","benevolence":"Ochrona i pomnażanie dobra ludzi, z którymi jest się w częstym kontakcie osobistym (rodzina, przyjaciele).","universalism":"Zrozumienie, tolerancja i ochrona dobra wszystkich ludzi i natury. Wykracza poza bliski krąg."};
 var TEAMS=[
   {id:"morgan",name:"J.P. Morgan",initials:"JPM",color:"#D35400",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/J.P._Morgan_%28cropped%29.jpg/220px-J.P._Morgan_%28cropped%29.jpg",bioFile:"bios/morgan.html",subtitle:"1837\u20131913 \u2022 USA",desc:"Bankier, budowniczy imperium finansowego \u2014 decyzyjno\u015b\u0107, w\u0142adza, wizja strategiczna"},
-  {id:"ardern",name:"Jacinda Ardern",initials:"JA",color:"#9B59B6",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/New_Zealand_Prime_Minister_Jacinda_Ardern_in_2018.jpg/220px-New_Zealand_Prime_Minister_Jacinda_Ardern_in_2018.jpg",bioFile:"bios/ardern.html",subtitle:"ur. 1980 \u2022 Nowa Zelandia",desc:"Premier Nowej Zelandii \u2014 empatia, autentyczno\u015b\u0107, przyw\u00f3dztwo w kryzysie"},
+  {id:"oprah",name:"Oprah Winfrey",initials:"OW",color:"#9B59B6",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Oprah_Winfrey_2016.jpg/220px-Oprah_Winfrey_2016.jpg",bioFile:"bios/oprah.html",subtitle:"ur. 1954 \u2022 USA",desc:"Prezenterka, filantropka \u2014 autentyczno\u015b\u0107, wp\u0142yw transformacyjny, empatia"},
   {id:"swiatek",name:"Iga \u015awi\u0105tek",initials:"I\u015a",color:"#E74C3C",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Iga_Swiatek_2023_Cropped_%2B_Retouched.jpg/220px-Iga_Swiatek_2023_Cropped_%2B_Retouched.jpg",bioFile:"bios/swiatek.html",subtitle:"ur. 2001 \u2022 Polska",desc:"Polska tenisistka nr 1 \u2014 dyscyplina, si\u0142a mentalna, determinacja"},
   {id:"obama",name:"Barack Obama",initials:"BO",color:"#2980B9",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/President_Barack_Obama.jpg/220px-President_Barack_Obama.jpg",bioFile:"bios/obama.html",subtitle:"ur. 1961 \u2022 USA",desc:"44. prezydent USA \u2014 charyzma, wizja zmiany, inspirowanie milion\u00f3w"}
 ];
@@ -562,7 +575,8 @@ function buildTeamStats(container,tid){
   var c2=mkCard('Ranking kategorii');
   var catArr=CO.map(function(ck){return{key:ck,c:cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
   var maxCat=catArr.length?catArr[0].c:1;
-  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,'#5B8A9A'));
+  var catItems=catArr.map(function(ca){return{key:ca.key,c:ca.c,label:CATS[ca.key].pl};});
+  c2.cnt.appendChild(mkVBar(catItems,maxCat,'#5B8A9A'));
   grid.appendChild(c2.el);
   var c3=mkCard('Wymiary Schwartza');
   var dCol={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
@@ -661,9 +675,9 @@ function buildDash(lim){
   var maxV=sorted.length?sorted[0].c:1;
   for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
   grid.appendChild(c1.el);
-  var c2=mkCard('Ranking kategorii');var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
+  var c2=mkCard('Ranking kategorii');var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0,label:CATS[ck].pl};}).sort(function(a,b){return b.c-a.c;});
   var maxCat=catArr.length?catArr[0].c:1;
-  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,'#5B8A9A'));
+  c2.cnt.appendChild(mkVBar(catArr,maxCat,'#5B8A9A'));
   grid.appendChild(c2.el);
   var c3=mkCard('Wymiary Schwartza');var dimArr=S.dashDims.map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
   var maxDim=dimArr.length?dimArr[0].c:1;var dCol={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
@@ -678,6 +692,21 @@ function mkCard(title){
   card.addEventListener('click',function(e){if(!card.classList.contains('expanded')&&e.target.tagName!=='BUTTON')card.classList.add('expanded');});
   return{el:card,cnt:cnt};
 }
+function mkVBar(items,maxVal,color){
+  var chart=document.createElement('div');chart.className='vbar-chart';
+  for(var i=0;i<items.length;i++){
+    var col=document.createElement('div');col.className='vbar-col';
+    var h=Math.round(items[i].c/Math.max(maxVal,1)*100);
+    var bar=document.createElement('div');bar.className='vbar-bar';bar.style.height=Math.max(h,2)+'%';bar.style.background=typeof color==='string'?color:(color[items[i].key]||'#5B8A9A');
+    if(items[i].c>0)bar.textContent=items[i].c;
+    col.appendChild(bar);
+    var lbl=document.createElement('div');lbl.className='vbar-label';lbl.textContent=items[i].label;
+    col.appendChild(lbl);
+    chart.appendChild(col);
+  }
+  return chart;
+}
+
 function mkBar(label,val,max,color){
   var r=document.createElement('div');r.className='bar-row';
   r.innerHTML='<div class="bar-label">'+label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(val/Math.max(max,1)*100)+'%;background:'+color+'">'+val+'</div></div>';return r;
@@ -769,7 +798,7 @@ function buildLeaderValuesExercise(container,team,readOnly){
     nxt2.addEventListener('click',function(){goStep(2);});pane.appendChild(nxt2);
   } else if(curStep===2){
     pane.innerHTML='<h3 style="color:var(--gold);margin-bottom:4px">Wybierz 5 kluczowych warto\u015bci '+esc(team.name)+'</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:8px">Spo\u015br\u00f3d 58 warto\u015bci wybierz dok\u0142adnie 5.</p><div class="selection-counter">Wybrano: <span id="lvCount">'+(ex.vals?ex.vals.length:0)+'</span> / 5</div>';
-    var srch=document.createElement('input');srch.className='search-input';srch.placeholder='Szukaj warto\u015bci...';srch.addEventListener('input',function(){var q=this.value.toLowerCase().trim();var cards=pane.querySelectorAll('.value-card');for(var si=0;si<cards.length;si++){cards[si].style.display=(!q||cards[si].getAttribute('data-pl').indexOf(q)>=0)?'':'none';}});
+    var srch=document.createElement('input');srch.className='search-input';srch.placeholder='Szukaj wartości...';srch.addEventListener('input',function(){var q=this.value.toLowerCase().trim();var cards=pane.querySelectorAll('.value-card');for(var si=0;si<cards.length;si++){cards[si].style.display=(!q||cards[si].getAttribute('data-pl').indexOf(q)>=0)?'':'none';}});
     pane.appendChild(srch);
     var vgrid=document.createElement('div');vgrid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:350px;overflow-y:auto;padding:4px';
     if(!ex.vals)ex.vals=[];

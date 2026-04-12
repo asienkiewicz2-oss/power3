@@ -238,6 +238,19 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .people-list-compact div{padding:4px 0;border-bottom:1px solid var(--border);color:var(--text)}
 .leader-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
 
+.config-row{max-width:420px}
+.config-row .toggle-switch{width:52px;min-width:52px}
+.vbar-chart{display:flex;align-items:flex-end;gap:6px;height:180px;padding:8px 0;justify-content:center}
+.vbar-col{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;max-width:60px}
+.vbar-bar{width:100%;border-radius:4px 4px 0 0;transition:height .5s;display:flex;align-items:flex-start;justify-content:center;padding-top:2px;font-size:.62rem;font-weight:700;color:#fff;min-height:2px}
+.vbar-label{font-size:.58rem;color:var(--muted);text-align:center;margin-top:4px;line-height:1.2;word-break:break-word;max-width:60px;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.sylwetka-row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.sylwetka-row>div{flex:1;min-width:140px}
+.zespol-row{display:flex;gap:16px;align-items:flex-start;flex-wrap:wrap}
+.zespol-row>div{flex:1;min-width:200px}
+.zespol-left{max-width:220px;flex:0 0 220px}
+@media(max-width:700px){.sylwetka-row,.zespol-row{flex-direction:column}.sylwetka-row>div,.zespol-row>div{min-width:100%;flex:1}.zespol-left{max-width:100%;flex:1}}
+
 </style>
 </head>
 <body>
@@ -288,7 +301,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 </div>
 <!-- Student -->
 <div id="studentNameScreen" class="student-screen hidden"><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center"><h2 style="font-size:1.4rem;color:var(--gold);margin-bottom:6px">Witaj! 👋</h2><p style="font-size:.85rem;color:var(--muted);margin-bottom:24px">Podaj swoje imię</p><input type="text" id="studentName" class="name-input" placeholder="Twoje imię" maxlength="20"><div class="validation-msg" id="nameError"></div><button class="big-btn" onclick="APP.startStudentFlow()" style="margin-top:12px;width:100%;max-width:320px">Dalej →</button></div></div>
-<div id="selectScreen" class="student-screen hidden"><div class="student-header"><h1>Wybierz swoje wartości</h1><div class="step-info">Krok 1 z 2</div></div><div class="student-progress"><div class="student-progress-fill" id="selectProgress"></div></div><div class="selection-instruction"><h2>Wybierz <strong id="maxSelectLabel">10</strong> wartości</h2><p>które są dla Ciebie najważniejsze jako lidera/liderki</p></div><div class="selection-counter">Wybrano: <span id="selectCount">0</span> / <span id="maxSelectCount">10</span></div><input type="text" class="search-input" id="valueSearch" placeholder="Szukaj warto\u015bci..." oninput="APP.filterValues(this.value)"><div class="values-grid" id="valuesGrid"></div><div class="bottom-bar"><button class="big-btn" id="selectNextBtn" disabled onclick="APP.goToRanking()">Dalej → Uszereguj</button></div></div>
+<div id="selectScreen" class="student-screen hidden"><div class="student-header"><h1>Wybierz swoje wartości</h1><div class="step-info">Krok 1 z 2</div></div><div class="student-progress"><div class="student-progress-fill" id="selectProgress"></div></div><div class="selection-instruction"><h2>Wybierz <strong id="maxSelectLabel">10</strong> wartości</h2><p>które są dla Ciebie najważniejsze jako lidera/liderki</p></div><div class="selection-counter">Wybrano: <span id="selectCount">0</span> / <span id="maxSelectCount">10</span></div><input type="text" class="search-input" id="valueSearch" placeholder="Szukaj wartości..." oninput="APP.filterValues(this.value)"><div class="values-grid" id="valuesGrid"></div><div class="bottom-bar"><button class="big-btn" id="selectNextBtn" disabled onclick="APP.goToRanking()">Dalej → Uszereguj</button></div></div>
 <div id="rankScreen" class="student-screen hidden"><div class="student-header"><h1>Uszereguj wartości</h1><div class="step-info">Przeciągaj w górę/dół</div></div><div class="rank-instruction"><h2>Najważniejsza na górze, najmniej ważna na dole</h2><p>Możesz zmieniać kolejność w każdej chwili</p></div><div class="rank-status" id="rankStatus"></div><div class="rank-list" id="rankList"></div></div>
 <div id="teamScreen" class="student-screen hidden"><div class="team-choose" id="teamChoosePanel"></div></div>
 <div id="studentTeamView" class="student-screen hidden"><div class="student-desktop-nav" id="stDesktopNav"></div><div class="student-mobile-nav"><h2 id="stTeamName"></h2><button class="hamburger" onclick="document.getElementById('stMobileMenu').classList.toggle('open')">☰</button></div><div class="mobile-menu" id="stMobileMenu"></div><div id="stTeamContent"></div></div>
@@ -317,7 +330,7 @@ var VDESC={1:"Wolność myśli i działania, możliwość samodzielnego decydowa
 var CDESC={"self-direction":"Niezależne myślenie i działanie — wybieranie, tworzenie, odkrywanie. Wywodzi się z potrzeby kontroli i autonomii.","stimulation":"Ekscytacja, nowość i wyzwania w życiu. Wywodzi się z potrzeby różnorodności i stymulacji dla optymalnego funkcjonowania.","hedonism":"Przyjemność i zmysłowe zaspokojenie dla samego siebie. Wywodzi się z potrzeby odczuwania radości.","achievement":"Osobisty sukces poprzez wykazanie kompetencji zgodnie ze standardami społecznymi. Dążenie do bycia lepszym.","power":"Status społeczny i prestiż, kontrola lub dominacja nad ludźmi i zasobami.","security":"Bezpieczeństwo, harmonia i stabilność społeczeństwa, relacji i samego siebie.","conformity":"Powstrzymywanie działań, skłonności i impulsów, które mogą szkodzić innym lub naruszać oczekiwania społeczne.","tradition":"Szacunek, zaangażowanie i akceptacja zwyczajów i idei, które tradycyjna kultura lub religia narzuca jednostce.","benevolence":"Ochrona i pomnażanie dobra ludzi, z którymi jest się w częstym kontakcie osobistym (rodzina, przyjaciele).","universalism":"Zrozumienie, tolerancja i ochrona dobra wszystkich ludzi i natury. Wykracza poza bliski krąg."};
 var TEAMS=[
   {id:"morgan",name:"J.P. Morgan",initials:"JPM",color:"#D35400",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/J.P._Morgan_%28cropped%29.jpg/220px-J.P._Morgan_%28cropped%29.jpg",bioFile:"bios/morgan.html",subtitle:"1837\u20131913 \u2022 USA",desc:"Bankier, budowniczy imperium finansowego \u2014 decyzyjno\u015b\u0107, w\u0142adza, wizja strategiczna"},
-  {id:"ardern",name:"Jacinda Ardern",initials:"JA",color:"#9B59B6",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/New_Zealand_Prime_Minister_Jacinda_Ardern_in_2018.jpg/220px-New_Zealand_Prime_Minister_Jacinda_Ardern_in_2018.jpg",bioFile:"bios/ardern.html",subtitle:"ur. 1980 \u2022 Nowa Zelandia",desc:"Premier Nowej Zelandii \u2014 empatia, autentyczno\u015b\u0107, przyw\u00f3dztwo w kryzysie"},
+  {id:"oprah",name:"Oprah Winfrey",initials:"OW",color:"#9B59B6",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/e/e0/Oprah_Winfrey_2016.jpg/220px-Oprah_Winfrey_2016.jpg",bioFile:"bios/oprah.html",subtitle:"ur. 1954 \u2022 USA",desc:"Prezenterka, filantropka \u2014 autentyczno\u015b\u0107, wp\u0142yw transformacyjny, empatia"},
   {id:"swiatek",name:"Iga \u015awi\u0105tek",initials:"I\u015a",color:"#E74C3C",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Iga_Swiatek_2023_Cropped_%2B_Retouched.jpg/220px-Iga_Swiatek_2023_Cropped_%2B_Retouched.jpg",bioFile:"bios/swiatek.html",subtitle:"ur. 2001 \u2022 Polska",desc:"Polska tenisistka nr 1 \u2014 dyscyplina, si\u0142a mentalna, determinacja"},
   {id:"obama",name:"Barack Obama",initials:"BO",color:"#2980B9",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/President_Barack_Obama.jpg/220px-President_Barack_Obama.jpg",bioFile:"bios/obama.html",subtitle:"ur. 1961 \u2022 USA",desc:"44. prezydent USA \u2014 charyzma, wizja zmiany, inspirowanie milion\u00f3w"}
 ];
@@ -588,9 +601,9 @@ function buildDash(lim){
   for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
   grid.appendChild(c1.el);
   // Categories (filtered)
-  var c2=mkCard('Ranking kategorii');var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
+  var c2=mkCard('Ranking kategorii');var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0,label:CATS[ck].pl};}).sort(function(a,b){return b.c-a.c;});
   var maxCat=catArr.length?catArr[0].c:1;
-  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,'#5B8A9A'));
+  c2.cnt.appendChild(mkVBar(catArr,maxCat,'#5B8A9A'));
   grid.appendChild(c2.el);
   // Dimensions (filtered)
   var c3=mkCard('Wymiary Schwartza');var dimArr=S.dashDims.map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
@@ -606,6 +619,21 @@ function mkCard(title){
   card.addEventListener('click',function(e){if(!card.classList.contains('expanded')&&e.target.tagName!=='BUTTON')card.classList.add('expanded');});
   return{el:card,cnt:cnt};
 }
+function mkVBar(items,maxVal,color){
+  var chart=document.createElement('div');chart.className='vbar-chart';
+  for(var i=0;i<items.length;i++){
+    var col=document.createElement('div');col.className='vbar-col';
+    var h=Math.round(items[i].c/Math.max(maxVal,1)*100);
+    var bar=document.createElement('div');bar.className='vbar-bar';bar.style.height=Math.max(h,2)+'%';bar.style.background=typeof color==='string'?color:(color[items[i].key]||'#5B8A9A');
+    if(items[i].c>0)bar.textContent=items[i].c;
+    col.appendChild(bar);
+    var lbl=document.createElement('div');lbl.className='vbar-label';lbl.textContent=items[i].label;
+    col.appendChild(lbl);
+    chart.appendChild(col);
+  }
+  return chart;
+}
+
 function mkBar(label,val,max,color){
   var r=document.createElement('div');r.className='bar-row';
   r.innerHTML='<div class="bar-label">'+label+'</div><div class="bar-track"><div class="bar-fill" style="width:'+Math.round(val/Math.max(max,1)*100)+'%;background:'+color+'">'+val+'</div></div>';return r;
@@ -781,81 +809,108 @@ function loadBio(container,team){
 function buildTeamStatsSection(container,ts,team,titleOverride){
   var subtitle=titleOverride||('Zesp\u00f3\u0142: '+team.name);
   container.innerHTML='<div class="page-sub" style="margin-bottom:12px;text-align:left">'+esc(subtitle)+' \u2014 '+ts.total+' os\u00f3b</div>';
+  // Main row: photo+members | ring | top10
+  var mainRow=document.createElement('div');mainRow.className='zespol-row';
+  // Left: team photo + members
+  var leftCol=document.createElement('div');leftCol.className='zespol-left';
+  var savedPhoto=null;try{savedPhoto=localStorage.getItem('teamPhoto_'+team.id);}catch(e){}
+  if(savedPhoto){var pimg=document.createElement('img');pimg.className='team-photo-img';pimg.style.maxWidth='200px';pimg.src=savedPhoto;leftCol.appendChild(pimg);}
+  else{var phPl=document.createElement('div');phPl.className='team-photo-upload';phPl.style.margin='0 0 8px';
+  var lbl2=document.createElement('label');lbl2.innerHTML='\ud83d\udcf7 Zdj\u0119cie zespo\u0142u';
+  var fileIn2=document.createElement('input');fileIn2.type='file';fileIn2.accept='image/*';
+  fileIn2.addEventListener('change',function(){
+    if(!this.files||!this.files[0])return;
+    var reader=new FileReader();reader.onload=function(ev){
+      var data=ev.target.result;if(data.length>300000){alert('Max ~200KB');return;}
+      try{localStorage.setItem('teamPhoto_'+team.id,data);}catch(ex){}
+      if(typeof sendP==='function')sendP({type:'teamPhoto',team:team.id,data:data});
+      var ni=document.createElement('img');ni.className='team-photo-img';ni.style.maxWidth='200px';ni.src=data;
+      phPl.parentElement.insertBefore(ni,phPl);phPl.remove();
+    };reader.readAsDataURL(this.files[0]);
+  });lbl2.appendChild(fileIn2);phPl.appendChild(lbl2);leftCol.appendChild(phPl);}
   var pids=getTeamPids(team.id);
   if(pids.length){
+    var pTitle=document.createElement('div');pTitle.style.cssText='color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px';pTitle.textContent='Cz\u0142onkowie ('+pids.length+')';leftCol.appendChild(pTitle);
     var pList=document.createElement('div');pList.className='people-list-compact';
     for(var pi=0;pi<pids.length;pi++){var sd=S.studentData?S.studentData[pids[pi]]:null;if(!sd)continue;var pe=document.createElement('div');pe.textContent=sd.name||'?';pList.appendChild(pe);}
-    container.appendChild(pList);
+    leftCol.appendChild(pList);
   }
-  var row1=document.createElement('div');row1.className='dash-row';
+  mainRow.appendChild(leftCol);
+  // Center: Schwartz ring
+  var centerCol=document.createElement('div');
   var svgId='stSec_'+Math.random().toString(36).substr(2,4);
-  var ringCard=document.createElement('div');ringCard.className='dash-card ring-small';ringCard.style.cursor='default';
-  ringCard.innerHTML='<h3>Ko\u0142o Schwartza</h3><div class="heatmap-wrap"><svg id="'+svgId+'" viewBox="-60 -60 720 720"></svg></div>';
-  row1.appendChild(ringCard);
+  centerCol.innerHTML='<h4 style="color:var(--muted);font-size:.72rem;text-align:center;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ko\u0142o Schwartza</h4><div style="max-width:300px;margin:0 auto"><svg id="'+svgId+'" viewBox="-60 -60 720 720" style="width:100%;height:auto"></svg></div>';
+  mainRow.appendChild(centerCol);
   setTimeout(function(){buildRingFromStats(svgId,ts);},50);
+  // Right: top 10 values
+  var rightCol=document.createElement('div');
+  rightCol.innerHTML='<h4 style="color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Top 10 warto\u015bci</h4>';
   var vc=ts.vc;
-  var valCard=document.createElement('div');valCard.className='dash-card';valCard.style.cursor='default';
-  var vh=document.createElement('h3');vh.textContent='Top 10 warto\u015bci';valCard.appendChild(vh);
   var sorted=Object.keys(vc).map(function(k){return{id:parseInt(k),c:vc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
   var maxV=sorted.length?sorted[0].c:1;
-  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);valCard.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
-  row1.appendChild(valCard);
-  container.appendChild(row1);
-  var row2=document.createElement('div');row2.className='dash-row';
+  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);rightCol.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
+  mainRow.appendChild(rightCol);
+  container.appendChild(mainRow);
+  // Row 2: Kategorie (vertical!) + Wymiary
+  var row2=document.createElement('div');row2.className='dash-row';row2.style.marginTop='16px';
   var catCard=document.createElement('div');catCard.className='dash-card';catCard.style.cursor='default';
   var ch=document.createElement('h3');ch.textContent='Ranking kategorii';catCard.appendChild(ch);
-  var catArr=CO.map(function(ck){return{key:ck,c:ts.cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
+  var catArr=CO.map(function(ck){return{key:ck,c:ts.cc[ck]||0,label:CATS[ck].pl};}).sort(function(a,b){return b.c-a.c;});
   var maxCat=catArr.length?catArr[0].c:1;
-  for(var ji=0;ji<catArr.length;ji++)catCard.appendChild(mkBar(CATS[catArr[ji].key].pl,catArr[ji].c,maxCat,'#5B8A9A'));
+  catCard.appendChild(mkVBar(catArr,maxCat,'#5B8A9A'));
   row2.appendChild(catCard);
   var dimCard=document.createElement('div');dimCard.className='dash-card';dimCard.style.cursor='default';
   var dh=document.createElement('h3');dh.textContent='Wymiary Schwartza';dimCard.appendChild(dh);
   var dCol2={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
-  var dimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck2){s+=(ts.cc[ck2]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
+  var dimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck2){s+=(ts.cc[ck2]||0);});return{key:dk,c:s,label:DIMS[dk].pl};}).sort(function(a,b){return b.c-a.c;});
   var maxDim=dimArr.length?dimArr[0].c:1;
   for(var dii=0;dii<dimArr.length;dii++)dimCard.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol2[dimArr[dii].key]));
   row2.appendChild(dimCard);
   container.appendChild(row2);
 }
+
+
 function buildStudentTeamDash(container,ts,team){
   container.innerHTML='';
   var exDone=S.leaderEx&&S.leaderEx.done;
-  // Accordion: Sylwetka lidera
+  // === Accordion: Sylwetka lidera ===
   var a1h=document.createElement('div');a1h.className='accordion-hdr'+(exDone?'':' accordion-locked');
   a1h.innerHTML='<h3>Sylwetka lidera: '+esc(team.name)+'</h3><span class="accordion-chv">\u25bc</span>';
   var a1b=document.createElement('div');a1b.className='accordion-bdy';
   if(exDone){
     a1h.addEventListener('click',function(){a1h.classList.toggle('open');});
-    var photoDiv=document.createElement('div');photoDiv.style.cssText='text-align:center;margin-bottom:16px';
-    var avDiv=document.createElement('div');avDiv.className='leader-avatar';avDiv.style.cssText='background:linear-gradient(135deg,'+team.color+',#333);width:80px;height:80px;font-size:1.4rem;margin:0 auto 8px';
+    var sRow=document.createElement('div');sRow.className='sylwetka-row';
+    // Col1: photo+name
+    var pCol=document.createElement('div');pCol.style.cssText='text-align:center;flex:0 0 120px;min-width:100px';
+    var avDiv=document.createElement('div');avDiv.className='leader-avatar';avDiv.style.cssText='background:linear-gradient(135deg,'+team.color+',#333);width:80px;height:80px;font-size:1.4rem;margin:0 auto 6px';
     if(team.img){var im=document.createElement('img');im.src=team.img;im.alt=team.name;im.onerror=function(){this.style.display='none';avDiv.textContent=team.initials;};avDiv.appendChild(im);}
     else avDiv.textContent=team.initials;
-    photoDiv.appendChild(avDiv);
-    var nameEl=document.createElement('div');nameEl.style.cssText='color:var(--gold);font-weight:700;font-size:.9rem';nameEl.textContent=team.name;
-    photoDiv.appendChild(nameEl);
-    if(team.subtitle){var sub=document.createElement('div');sub.style.cssText='color:var(--muted);font-size:.72rem';sub.textContent=team.subtitle;photoDiv.appendChild(sub);}
-    a1b.appendChild(photoDiv);
-    var miniRingId='miniLeaderRing_'+team.id;
-    var ringWrap=document.createElement('div');ringWrap.style.cssText='max-width:320px;margin:0 auto 16px';
-    ringWrap.innerHTML='<h4 style="color:var(--muted);font-size:.78rem;text-align:center;margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Ko\u0142o warto\u015bci lidera</h4><svg id="'+miniRingId+'" viewBox="-60 -60 720 720" style="width:100%;height:auto"></svg>';
-    a1b.appendChild(ringWrap);
+    pCol.appendChild(avDiv);
+    var nm=document.createElement('div');nm.style.cssText='color:var(--gold);font-weight:700;font-size:.82rem';nm.textContent=team.name;pCol.appendChild(nm);
+    if(team.subtitle){var sub=document.createElement('div');sub.style.cssText='color:var(--muted);font-size:.68rem';sub.textContent=team.subtitle;pCol.appendChild(sub);}
+    sRow.appendChild(pCol);
+    // Col2: mini ring
+    var rCol=document.createElement('div');rCol.style.cssText='min-width:160px;max-width:240px';
+    var miniRingId='miniLR_'+team.id;
+    rCol.innerHTML='<h4 style="color:var(--muted);font-size:.72rem;text-align:center;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Ko\u0142o warto\u015bci</h4><svg id="'+miniRingId+'" viewBox="-60 -60 720 720" style="width:100%;height:auto"></svg>';
+    sRow.appendChild(rCol);
     setTimeout(function(){
-      var fakeStats={cc:{},vc:{},total:1};
-      for(var ck in CATS)fakeStats.cc[ck]=0;
-      for(var lvi=0;lvi<S.leaderEx.vals.length;lvi++){var lid=S.leaderEx.vals[lvi];fakeStats.vc[lid]=1;var lv=valById(lid);if(lv)fakeStats.cc[lv.cat]=(fakeStats.cc[lv.cat]||0)+1;}
-      buildRingFromStats(miniRingId,fakeStats);
+      var fs={cc:{},vc:{},total:1};for(var ck in CATS)fs.cc[ck]=0;
+      for(var lvi=0;lvi<S.leaderEx.vals.length;lvi++){var lid=S.leaderEx.vals[lvi];fs.vc[lid]=1;var lv=valById(lid);if(lv)fs.cc[lv.cat]=(fs.cc[lv.cat]||0)+1;}
+      buildRingFromStats(miniRingId,fs);
     },50);
-    var metaGrid=document.createElement('div');metaGrid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:12px;max-width:500px;margin:0 auto';
-    var col3=document.createElement('div');col3.innerHTML='<h4 style="color:var(--muted);font-size:.78rem;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Wymiary</h4>';
-    for(var di2=0;di2<S.leaderEx.dims.length;di2++)col3.innerHTML+='<div class="profile-rank-item"><span class="profile-rank-num">'+(di2+1)+'</span><span class="profile-rank-label">'+DIMS[S.leaderEx.dims[di2]].pl+'</span></div>';
-    metaGrid.appendChild(col3);
-    var col4=document.createElement('div');col4.innerHTML='<h4 style="color:var(--muted);font-size:.78rem;margin-bottom:6px;text-transform:uppercase;letter-spacing:.5px">Top 5 kategorii</h4>';
-    for(var ci2=0;ci2<Math.min(5,S.leaderEx.cats.length);ci2++){var ck2=S.leaderEx.cats[ci2];col4.innerHTML+='<div class="profile-rank-item"><span class="profile-rank-num">'+(ci2+1)+'</span><span class="profile-rank-label">'+CATS[ck2].pl+'</span></div>';}
-    metaGrid.appendChild(col4);
-    a1b.appendChild(metaGrid);
+    // Col3: dims
+    var dCol=document.createElement('div');dCol.innerHTML='<h4 style="color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Wymiary</h4>';
+    for(var di=0;di<S.leaderEx.dims.length;di++)dCol.innerHTML+='<div class="profile-rank-item"><span class="profile-rank-num">'+(di+1)+'</span><span class="profile-rank-label">'+DIMS[S.leaderEx.dims[di]].pl+'</span></div>';
+    sRow.appendChild(dCol);
+    // Col4: top5 cats
+    var cCol=document.createElement('div');cCol.innerHTML='<h4 style="color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">Top 5 kategorii</h4>';
+    for(var ci=0;ci<Math.min(5,S.leaderEx.cats.length);ci++){var ck2=S.leaderEx.cats[ci];cCol.innerHTML+='<div class="profile-rank-item"><span class="profile-rank-num">'+(ci+1)+'</span><span class="profile-rank-label">'+CATS[ck2].pl+'</span></div>';}
+    sRow.appendChild(cCol);
+    a1b.appendChild(sRow);
   }
   container.appendChild(a1h);container.appendChild(a1b);
-  // Accordion: Zesp\u00f3\u0142
+  // === Accordion: Zesp\u00f3\u0142 ===
   var a2h=document.createElement('div');a2h.className='accordion-hdr open';
   a2h.innerHTML='<h3>Zesp\u00f3\u0142</h3><span class="accordion-chv">\u25bc</span>';
   a2h.addEventListener('click',function(){a2h.classList.toggle('open');});
@@ -864,7 +919,7 @@ function buildStudentTeamDash(container,ts,team){
     buildTeamStatsSection(a2b,ts,team);
   } else {a2b.innerHTML='<p style="color:var(--muted)">Brak danych zespo\u0142u.</p>';}
   container.appendChild(a2h);container.appendChild(a2b);
-  // Accordion: Wsp\u00f3lnie
+  // === Accordion: Wsp\u00f3lnie ===
   var a3h=document.createElement('div');a3h.className='accordion-hdr'+(exDone?'':' accordion-locked');
   a3h.innerHTML='<h3>Wsp\u00f3lnie (zesp\u00f3\u0142 + lider)</h3><span class="accordion-chv">\u25bc</span>';
   var a3b=document.createElement('div');a3b.className='accordion-bdy';
@@ -877,29 +932,6 @@ function buildStudentTeamDash(container,ts,team){
     buildTeamStatsSection(a3b,combined,team,'Zesp\u00f3\u0142 + '+team.name);
   }
   container.appendChild(a3h);container.appendChild(a3b);
-  // Team photo
-  var photoSec=document.createElement('div');photoSec.className='team-photo-upload';
-  var savedPhoto=null;try{savedPhoto=localStorage.getItem('teamPhoto_'+team.id);}catch(e){}
-  if(savedPhoto){var pimg=document.createElement('img');pimg.className='team-photo-img';pimg.src=savedPhoto;photoSec.appendChild(pimg);}
-  var lbl=document.createElement('label');lbl.innerHTML=(savedPhoto?'\ud83d\udcf7 Zmie\u0144 zdj\u0119cie zespo\u0142u':'\ud83d\udcf7 Dodaj zdj\u0119cie zespo\u0142u');
-  var fileIn=document.createElement('input');fileIn.type='file';fileIn.accept='image/*';
-  fileIn.addEventListener('change',function(){
-    if(!this.files||!this.files[0])return;
-    var reader=new FileReader();
-    reader.onload=function(e){
-      var data=e.target.result;
-      if(data.length>300000){alert('Zdj\u0119cie za du\u017ce (max ~200KB). Zmniejsz rozdzielczo\u015b\u0107.');return;}
-      try{localStorage.setItem('teamPhoto_'+team.id,data);}catch(ex){}
-      sendP({type:'teamPhoto',team:team.id,data:data});
-      var existing=photoSec.querySelector('.team-photo-img');
-      if(existing)existing.src=data;
-      else{var ni=document.createElement('img');ni.className='team-photo-img';ni.src=data;photoSec.insertBefore(ni,lbl);}
-      lbl.innerHTML='\ud83d\udcf7 Zmie\u0144 zdj\u0119cie zespo\u0142u';
-    };
-    reader.readAsDataURL(this.files[0]);
-  });
-  lbl.appendChild(fileIn);photoSec.appendChild(lbl);
-  container.appendChild(photoSec);
 }
 function buildRingFromStats(svgId,ts){
   var svg=document.getElementById(svgId);if(!svg)return;svg.innerHTML='';var cx=300,cy=300,R=240,r2=80,n=CO.length,st=360/n;
@@ -997,7 +1029,7 @@ function buildLeaderValuesExercise(container,team,readOnly){
     nxt2.addEventListener('click',function(){goStep(2);});pane.appendChild(nxt2);
   } else if(curStep===2){
     pane.innerHTML='<h3 style="color:var(--gold);margin-bottom:4px">Wybierz 5 kluczowych warto\u015bci '+esc(team.name)+'</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:8px">Spo\u015br\u00f3d 58 warto\u015bci wybierz dok\u0142adnie 5.</p><div class="selection-counter">Wybrano: <span id="lvCount">'+(ex.vals?ex.vals.length:0)+'</span> / 5</div>';
-    var srch=document.createElement('input');srch.className='search-input';srch.placeholder='Szukaj warto\u015bci...';srch.addEventListener('input',function(){var q=this.value.toLowerCase().trim();var cards=pane.querySelectorAll('.value-card');for(var si=0;si<cards.length;si++){cards[si].style.display=(!q||cards[si].getAttribute('data-pl').indexOf(q)>=0)?'':'none';}});
+    var srch=document.createElement('input');srch.className='search-input';srch.placeholder='Szukaj wartości...';srch.addEventListener('input',function(){var q=this.value.toLowerCase().trim();var cards=pane.querySelectorAll('.value-card');for(var si=0;si<cards.length;si++){cards[si].style.display=(!q||cards[si].getAttribute('data-pl').indexOf(q)>=0)?'':'none';}});
     pane.appendChild(srch);
     var vgrid=document.createElement('div');vgrid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:350px;overflow-y:auto;padding:4px';
     if(!ex.vals)ex.vals=[];
