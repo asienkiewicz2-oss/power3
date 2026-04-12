@@ -1050,11 +1050,18 @@ function buildStudentTeamDash(container,ts,team){
   container.appendChild(a3h);container.appendChild(a3b);
 }
 
-function buildPoster(container,team){
+function buildPoster(container,team,opts){
+  opts=opts||{};
   container.innerHTML='';
   var poster=document.createElement('div');poster.className='poster';
-  var ts=S._teamStats&&S._teamStats[team.id];
-  var exDone=S.leaderEx&&S.leaderEx.done;
+  var ts=opts.teamStats||(S._teamStats&&S._teamStats[team.id])||null;
+  var leaderStats=null;
+  if(opts.leaderStats){leaderStats=opts.leaderStats;}
+  else if(S.leaderEx&&S.leaderEx.done){
+    var lcc={},lvc={};for(var ck in CATS)lcc[ck]=0;
+    for(var lvi=0;lvi<S.leaderEx.vals.length;lvi++){var lid=S.leaderEx.vals[lvi];lvc[lid]=1;var lv=valById(lid);if(lv)lcc[lv.cat]=(lcc[lv.cat]||0)+1;}
+    leaderStats={cc:lcc,vc:lvc,total:1};
+  }
   // === Title ===
   var titleSec=document.createElement('div');titleSec.className='poster-section poster-title';
   titleSec.innerHTML='<h1>\u2605 Zesp\u00f3\u0142: '+esc(team.name)+' \u2605</h1>';
@@ -1081,8 +1088,8 @@ function buildPoster(container,team){
   var memSec=document.createElement('div');memSec.className='poster-section';
   memSec.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:10px">Cz\u0142onkowie zespo\u0142u</h3>';
   var memDiv=document.createElement('div');memDiv.className='poster-members';
-  var memberNames=(ts&&ts.members)||[];
-  if(S.studentName&&memberNames.indexOf(S.studentName)<0)memberNames.push(S.studentName);
+  var memberNames=opts.memberNames||(ts&&ts.members)||[];
+  if(S.studentName&&memberNames.indexOf(S.studentName)<0)memberNames=memberNames.concat([S.studentName]);
   for(var mi=0;mi<memberNames.length;mi++){var chip=document.createElement('span');chip.className='poster-member';chip.textContent=memberNames[mi];memDiv.appendChild(chip);}
   if(!memberNames.length){memDiv.innerHTML='<span style="color:var(--muted);font-size:.82rem">Brak cz\u0142onk\u00f3w</span>';}
   memSec.appendChild(memDiv);poster.appendChild(memSec);
@@ -1105,13 +1112,6 @@ function buildPoster(container,team){
   var hdrL=document.createElement('div');hdrL.className='compare-header';hdrL.textContent=team.gender==='f'?'Liderka: '+team.name:'Lider: '+team.name;
   var hdrR=document.createElement('div');hdrR.className='compare-header';hdrR.textContent='Zesp\u00f3\u0142'+(ts?' ('+ts.total+')':'');
   grid.appendChild(hdrL);grid.appendChild(hdrR);
-  // Compute leader stats
-  var leaderStats=null;
-  if(exDone){
-    var lcc={},lvc={};for(var ck in CATS)lcc[ck]=0;
-    for(var lvi=0;lvi<S.leaderEx.vals.length;lvi++){var lid=S.leaderEx.vals[lvi];lvc[lid]=1;var lv=valById(lid);if(lv)lcc[lv.cat]=(lcc[lv.cat]||0)+1;}
-    leaderStats={cc:lcc,vc:lvc,total:1};
-  }
   var dCol={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
   // Row 1: Schwartz Ring
   var ringL=document.createElement('div');ringL.className='compare-cell';
@@ -1119,45 +1119,38 @@ function buildPoster(container,team){
   ringL.innerHTML='<h4>Ko\u0142o Schwartza</h4>';
   ringR.innerHTML='<h4>Ko\u0142o Schwartza</h4>';
   if(leaderStats){
-    var lrId='cmpLR_'+team.id;ringL.innerHTML+='<svg id="'+lrId+'" viewBox="-60 -60 720 720"></svg>';
+    var lrId='cmpLR_'+team.id+'_'+Math.random().toString(36).substr(2,4);ringL.innerHTML+='<svg id="'+lrId+'" viewBox="-60 -60 720 720"></svg>';
     setTimeout(function(){buildRingFromStats(lrId,leaderStats);},50);
   }else{ringL.innerHTML+='<div class="compare-empty">\ud83d\udd12 Wykonaj \u0107wiczenie</div>';}
   if(ts&&ts.total){
-    var trId='cmpTR_'+team.id;ringR.innerHTML+='<svg id="'+trId+'" viewBox="-60 -60 720 720"></svg>';
+    var trId='cmpTR_'+team.id+'_'+Math.random().toString(36).substr(2,4);ringR.innerHTML+='<svg id="'+trId+'" viewBox="-60 -60 720 720"></svg>';
     setTimeout(function(){buildRingFromStats(trId,ts);},60);
   }else{ringR.innerHTML+='<div class="compare-empty">Brak danych</div>';}
   grid.appendChild(ringL);grid.appendChild(ringR);
-  // Row 2: Kategorie (vertical bars)
+  // Row 2: Kategorie (horizontal bars, fixed CO order for alignment)
   var catL=document.createElement('div');catL.className='compare-cell';
   var catR=document.createElement('div');catR.className='compare-cell';
   catL.innerHTML='<h4>Kategorie warto\u015bci</h4>';
   catR.innerHTML='<h4>Kategorie warto\u015bci</h4>';
-  if(leaderStats){
-    var lcatArr=CO.map(function(ck2){return{key:ck2,c:leaderStats.cc[ck2]||0,label:CATS[ck2].pl};}).sort(function(a,b){return b.c-a.c;});
-    var lmaxCat=lcatArr.length?lcatArr[0].c:1;
-    catL.appendChild(mkVBar(lcatArr,lmaxCat,'#5B8A9A'));
-  }else{catL.innerHTML+='<div class="compare-empty">\ud83d\udd12</div>';}
-  if(ts&&ts.total){
-    var tcatArr=CO.map(function(ck3){return{key:ck3,c:ts.cc[ck3]||0,label:CATS[ck3].pl};}).sort(function(a,b){return b.c-a.c;});
-    var tmaxCat=tcatArr.length?tcatArr[0].c:1;
-    catR.appendChild(mkVBar(tcatArr,tmaxCat,'#5B8A9A'));
-  }else{catR.innerHTML+='<div class="compare-empty">Brak danych</div>';}
+  var catMaxAll=1;
+  for(var ci=0;ci<CO.length;ci++){var ck2=CO[ci];var lc=leaderStats?(leaderStats.cc[ck2]||0):0;var tc=(ts?ts.cc[ck2]:0)||0;catMaxAll=Math.max(catMaxAll,lc,tc);}
+  if(leaderStats){for(var ci2=0;ci2<CO.length;ci2++){var ck3=CO[ci2];catL.appendChild(mkBar(CATS[ck3].pl,leaderStats.cc[ck3]||0,catMaxAll,CATS[ck3].color));}}
+  else{catL.innerHTML+='<div class="compare-empty">\ud83d\udd12</div>';}
+  if(ts&&ts.total){for(var ci3=0;ci3<CO.length;ci3++){var ck4=CO[ci3];catR.appendChild(mkBar(CATS[ck4].pl,ts.cc[ck4]||0,catMaxAll,CATS[ck4].color));}}
+  else{catR.innerHTML+='<div class="compare-empty">Brak danych</div>';}
   grid.appendChild(catL);grid.appendChild(catR);
-  // Row 3: Wymiary (horizontal bars)
+  // Row 3: Wymiary (horizontal bars, fixed order for alignment)
+  var DIM_ORDER=['openness','enhancement','conservation','transcendence'];
   var dimL=document.createElement('div');dimL.className='compare-cell';
   var dimR=document.createElement('div');dimR.className='compare-cell';
   dimL.innerHTML='<h4>Wymiary Schwartza</h4>';
   dimR.innerHTML='<h4>Wymiary Schwartza</h4>';
-  if(leaderStats){
-    var ldimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck4){s+=(leaderStats.cc[ck4]||0);});return{key:dk,c:s,label:DIMS[dk].pl};}).sort(function(a,b){return b.c-a.c;});
-    var lmaxDim=ldimArr.length?ldimArr[0].c:1;
-    for(var ldi=0;ldi<ldimArr.length;ldi++)dimL.appendChild(mkBar(ldimArr[ldi].label,ldimArr[ldi].c,lmaxDim,dCol[ldimArr[ldi].key]));
-  }else{dimL.innerHTML+='<div class="compare-empty">\ud83d\udd12</div>';}
-  if(ts&&ts.total){
-    var tdimArr=['openness','enhancement','conservation','transcendence'].map(function(dk2){var s2=0;DIM_CATS[dk2].forEach(function(ck5){s2+=(ts.cc[ck5]||0);});return{key:dk2,c:s2,label:DIMS[dk2].pl};}).sort(function(a,b){return b.c-a.c;});
-    var tmaxDim=tdimArr.length?tdimArr[0].c:1;
-    for(var tdi=0;tdi<tdimArr.length;tdi++)dimR.appendChild(mkBar(tdimArr[tdi].label,tdimArr[tdi].c,tmaxDim,dCol[tdimArr[tdi].key]));
-  }else{dimR.innerHTML+='<div class="compare-empty">Brak danych</div>';}
+  var dimMaxAll=1;
+  for(var di=0;di<DIM_ORDER.length;di++){var dk=DIM_ORDER[di];var ls=0,rs=0;DIM_CATS[dk].forEach(function(ck5){ls+=(leaderStats?(leaderStats.cc[ck5]||0):0);rs+=(ts?(ts.cc[ck5]||0):0);});dimMaxAll=Math.max(dimMaxAll,ls,rs);}
+  if(leaderStats){for(var di2=0;di2<DIM_ORDER.length;di2++){var dk2=DIM_ORDER[di2];var s=0;DIM_CATS[dk2].forEach(function(ck6){s+=(leaderStats.cc[ck6]||0);});dimL.appendChild(mkBar(DIMS[dk2].pl,s,dimMaxAll,dCol[dk2]));}}
+  else{dimL.innerHTML+='<div class="compare-empty">\ud83d\udd12</div>';}
+  if(ts&&ts.total){for(var di3=0;di3<DIM_ORDER.length;di3++){var dk3=DIM_ORDER[di3];var s2=0;DIM_CATS[dk3].forEach(function(ck7){s2+=(ts.cc[ck7]||0);});dimR.appendChild(mkBar(DIMS[dk3].pl,s2,dimMaxAll,dCol[dk3]));}}
+  else{dimR.innerHTML+='<div class="compare-empty">Brak danych</div>';}
   grid.appendChild(dimL);grid.appendChild(dimR);
   compSec.appendChild(grid);poster.appendChild(compSec);
   // === Notes ===
