@@ -252,6 +252,39 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .zespol-left{max-width:220px;flex:0 0 220px}
 @media(max-width:700px){.sylwetka-row,.zespol-row{flex-direction:column}.sylwetka-row>div,.zespol-row>div{min-width:100%;flex:1}.zespol-left{max-width:100%;flex:1}}
 
+.poster{max-width:800px;margin:0 auto;padding:20px}
+.poster-section{margin-bottom:28px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.poster-section:last-child{border-bottom:none}
+.poster-title{text-align:center;margin-bottom:20px}
+.poster-title h1{font-size:1.5rem;color:var(--gold);font-weight:800;margin-bottom:4px}
+.poster-title .poster-sub{font-size:.82rem;color:var(--muted)}
+.poster-photo{text-align:center;margin-bottom:16px}
+.poster-photo img{max-width:100%;max-height:280px;border-radius:14px;border:2px solid var(--border);display:block;margin:0 auto}
+.poster-photo-upload{text-align:center}
+.poster-photo-upload label{display:inline-block;background:var(--card);border:2px dashed var(--border);border-radius:14px;padding:24px 40px;cursor:pointer;font-size:.9rem;color:var(--muted);transition:all .15s}
+.poster-photo-upload label:hover{border-color:var(--gold);color:var(--gold)}
+.poster-photo-upload input[type=file]{display:none}
+.poster-members{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:8px}
+.poster-member{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:6px 16px;font-size:.82rem;color:var(--text);font-weight:600}
+.poster-leader{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.poster-leader-photo{flex:0 0 auto;text-align:center}
+.poster-leader-photo .leader-avatar{width:90px;height:90px;font-size:1.5rem;margin:0 auto 6px}
+.poster-leader-info{flex:1;min-width:180px}
+.poster-leader-info h3{color:var(--gold);font-size:1.1rem;margin-bottom:2px}
+.poster-leader-info .poster-sub{color:var(--muted);font-size:.78rem}
+.poster-leader-desc{color:var(--text);font-size:.82rem;margin-top:6px;font-style:italic}
+.poster-vals-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:12px}
+@media(max-width:600px){.poster-vals-row{grid-template-columns:1fr}.poster-leader{flex-direction:column;text-align:center}}
+.poster-ring-wrap{max-width:320px;margin:0 auto}
+.poster-ring-wrap svg{width:100%;height:auto}
+.poster-val-list{list-style:none;padding:0}
+.poster-val-list li{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.82rem;border-bottom:1px solid rgba(255,255,255,.05)}
+.poster-val-num{color:var(--gold);font-weight:800;width:20px;text-align:center}
+.poster-notes textarea{width:100%;min-height:100px;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;font-size:.85rem;color:var(--text);font-family:inherit;resize:vertical;outline:none}
+.poster-notes textarea:focus{border-color:var(--gold)}
+.poster-notes textarea::placeholder{color:var(--muted)}
+.poster-notes-label{font-size:.75rem;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+
 </style>
 </head>
 <body>
@@ -388,6 +421,18 @@ function saveS(){if(S.mode!=='student')return;try{localStorage.setItem(SK,JSON.s
 function curScreen(){if(!document.getElementById('studentTeamView').classList.contains('hidden'))return'teamView';if(!document.getElementById('teamScreen').classList.contains('hidden'))return'teamChoose';if(!document.getElementById('resultScreen').classList.contains('hidden'))return'result';if(!document.getElementById('rankScreen').classList.contains('hidden'))return'rank';if(!document.getElementById('selectScreen').classList.contains('hidden'))return'select';return'name';}
 function loadS(){try{return JSON.parse(localStorage.getItem(SK));}catch(e){return null;}}
 
+var PK='values_explorer_presenter';
+function savePres(){
+  if(S.mode!=='presenter')return;
+  try{
+    var snap={room:S.roomCode,studentData:{},teamsEnabled:S.teamsEnabled,maxMembers:S.maxMembers,currentLimit:S.currentLimit,snapshots:S.snapshots};
+    for(var pid in S.studentData){var sd=S.studentData[pid];snap.studentData[pid]={connId:sd.connId,name:sd.name,top10:sd.top10,ranked:sd.ranked,phase:sd.phase,team:sd.team,leaderEx:sd.leaderEx};}
+    localStorage.setItem(PK,JSON.stringify(snap));
+  }catch(e){}
+}
+function loadPres(){try{return JSON.parse(localStorage.getItem(PK));}catch(e){return null;}}
+function clearPres(){try{localStorage.removeItem(PK);}catch(e){}}
+
 // NAV
 function nav(page){
   if(S.canvasRAF&&page!=='canvasPage'){cancelAnimationFrame(S.canvasRAF);S.canvasRAF=null;}
@@ -402,7 +447,7 @@ function nav(page){
 }
 
 // PRESENTER
-function startPresenter(){S.mode='presenter';S.roomCode=genRoom();document.getElementById('topNav').classList.remove('hidden');show('canvasPage');nav('canvasPage');buildCanvas();initPeer();takeSnap(10);setInterval(function(){broadcast({type:'ping'});},15000);}
+function startPresenter(){S.mode='presenter';var saved=loadPres();if(saved&&saved.room){S.roomCode=saved.room;S.studentData=saved.studentData||{};S.teamsEnabled=saved.teamsEnabled||false;S.maxMembers=saved.maxMembers||5;S.currentLimit=saved.currentLimit||10;S.snapshots=saved.snapshots||{};}else{S.roomCode=genRoom();}document.getElementById('topNav').classList.remove('hidden');show('canvasPage');nav('canvasPage');buildCanvas();initPeer();if(!saved||!saved.room)takeSnap(10);if(S.teamsEnabled){var tg=document.getElementById('teamToggle');if(tg)tg.checked=true;var tgr=document.getElementById('teamsGrid');if(tgr)tgr.style.display='';}setInterval(function(){broadcast({type:'ping'});},15000);}
 function initPeer(){
   var pid='val-'+S.roomCode.toLowerCase();S.peer=new Peer(pid);
   S.peer.on('connection',function(conn){S.connections.push(conn);conn.on('open',function(){conn.send({type:'setLimit',limit:S.currentLimit});if(S.teamsEnabled)conn.send({type:'teamsOn',teams:TEAMS.map(function(t){return{id:t.id,name:t.name,desc:t.desc};})});});conn.on('data',function(d){onSMsg(conn.peer,d);});conn.on('close',function(){S.connections=S.connections.filter(function(c){return c.peer!==conn.peer;});upAll();});upAll();});
@@ -430,12 +475,13 @@ function onSMsg(pid,d){
   else if(d.type==='team'){sd.team=d.team;sd.phase='teams';}
   else if(d.type==='leaderEx'){sd.leaderEx=d;}
   else if(d.type==='teamPhoto'){broadcast({type:'teamPhoto',team:d.team,data:d.data});}
+  else if(d.type==='teamNotes'){broadcast({type:'teamNotes',team:d.team,data:d.data});}
   sd.lastSeen=Date.now();
   upAll();
 }
 function broadcast(m){for(var i=0;i<S.connections.length;i++)if(S.connections[i].open)S.connections[i].send(m);}
 function sendTo(pid,m){var c=S.connections.find(function(cn){return cn.peer===pid;});if(c&&c.open)c.send(m);}
-function upAll(){upReduce();refreshPeople();if(!document.getElementById('livePage').classList.contains('hidden'))buildRing('liveSvg','liveTT',S.currentLimit);var sub=document.getElementById('liveSub');if(sub)sub.textContent='Top '+S.currentLimit+' \u2014 '+Object.keys(S.studentData).length+' studentów';broadcastTeamStats();}
+function upAll(){savePres();upReduce();refreshPeople();if(!document.getElementById('livePage').classList.contains('hidden'))buildRing('liveSvg','liveTT',S.currentLimit);var sub=document.getElementById('liveSub');if(sub)sub.textContent='Top '+S.currentLimit+' \u2014 '+Object.keys(S.studentData).length+' studentów';broadcastTeamStats();}
 function broadcastTeamStats(){if(!S.teamsEnabled)return;var stats={};for(var i=0;i<TEAMS.length;i++){var tid=TEAMS[i].id;var pids=getTeamPids(tid);var cc=getCounts(5,pids);var vc=cc._vc;stats[tid]={cc:{},vc:vc,total:pids.length};for(var ck in CATS)stats[tid].cc[ck]=cc[ck]||0;}broadcast({type:'teamStats',stats:stats});}
 function reduceByOne(){if(S.currentLimit<=5)return;S.currentLimit--;takeSnap(S.currentLimit);broadcast({type:'reduce',limit:S.currentLimit});upAll();if(S.currentLimit===5){for(var k in S.studentData)if(S.studentData[k].phase!=='teams')S.studentData[k].phase='done';broadcast({type:'final'});}}
 function takeSnap(l){S.snapshots[l]=getCounts(l);}
@@ -538,6 +584,89 @@ function buildTeamStatsSection(container,ts,team,titleOverride){
   row2.appendChild(dimCard);
   container.appendChild(row2);
 }
+
+function buildPosterAdmin(container,team){
+  container.innerHTML='';
+  var poster=document.createElement('div');poster.className='poster';
+  var titleSec=document.createElement('div');titleSec.className='poster-section poster-title';
+  titleSec.innerHTML='<h1>\u2605 Zesp\u00f3\u0142: '+esc(team.name)+' \u2605</h1>';
+  poster.appendChild(titleSec);
+  // Members
+  var memSec=document.createElement('div');memSec.className='poster-section';
+  memSec.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:10px">Cz\u0142onkowie zespo\u0142u</h3>';
+  var memDiv=document.createElement('div');memDiv.className='poster-members';
+  var pids=getTeamPids(team.id);
+  for(var pi=0;pi<pids.length;pi++){var sd=S.studentData[pids[pi]];if(!sd||!sd.name)continue;
+    var chip=document.createElement('span');chip.className='poster-member';chip.textContent=sd.name;memDiv.appendChild(chip);}
+  if(!pids.length)memDiv.innerHTML='<span style="color:var(--muted)">Brak cz\u0142onk\u00f3w</span>';
+  memSec.appendChild(memDiv);poster.appendChild(memSec);
+  // Leader
+  var leaderSec=document.createElement('div');leaderSec.className='poster-section';
+  leaderSec.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">\ud83c\udf1f Nasz Lider</h3>';
+  var lRow=document.createElement('div');lRow.className='poster-leader';
+  var lPhoto=document.createElement('div');lPhoto.className='poster-leader-photo';
+  var avDiv=document.createElement('div');avDiv.className='leader-avatar';avDiv.style.background='linear-gradient(135deg,'+team.color+',#333)';
+  if(team.img){var im=document.createElement('img');im.src=team.img;im.alt=team.name;im.onerror=function(){this.style.display='none';avDiv.textContent=team.initials;};avDiv.appendChild(im);}
+  else avDiv.textContent=team.initials;
+  lPhoto.appendChild(avDiv);
+  var nm=document.createElement('div');nm.style.cssText='color:var(--gold);font-weight:700;font-size:.85rem';nm.textContent=team.name;lPhoto.appendChild(nm);
+  if(team.subtitle){var sub=document.createElement('div');sub.style.cssText='color:var(--muted);font-size:.7rem';sub.textContent=team.subtitle;lPhoto.appendChild(sub);}
+  lRow.appendChild(lPhoto);
+  var lInfo=document.createElement('div');lInfo.className='poster-leader-info';
+  if(team.desc){var desc=document.createElement('div');desc.className='poster-leader-desc';desc.textContent=team.desc;lInfo.appendChild(desc);}
+  // Aggregate leader values from students
+  var leaderResults=[];
+  for(var pi2=0;pi2<pids.length;pi2++){var sd2=S.studentData[pids[pi2]];if(sd2&&sd2.leaderEx&&sd2.leaderEx.done)leaderResults.push(sd2.leaderEx);}
+  if(leaderResults.length){
+    var valsRow=document.createElement('div');valsRow.className='poster-vals-row';
+    var ringCol=document.createElement('div');ringCol.className='poster-ring-wrap';
+    var miniRingId='posterALR_'+team.id;
+    ringCol.innerHTML='<svg id="'+miniRingId+'" viewBox="-60 -60 720 720"></svg>';
+    valsRow.appendChild(ringCol);
+    // Aggregate vals
+    var aggVc={},aggCc={};for(var ck in CATS)aggCc[ck]=0;
+    for(var ri=0;ri<leaderResults.length;ri++){var lr=leaderResults[ri];if(lr.vals)for(var lvi=0;lvi<lr.vals.length;lvi++){var lid=lr.vals[lvi];aggVc[lid]=(aggVc[lid]||0)+1;var lv=valById(lid);if(lv)aggCc[lv.cat]=(aggCc[lv.cat]||0)+1;}}
+    setTimeout(function(){buildRingFromStats(miniRingId,{cc:aggCc,vc:aggVc,total:leaderResults.length});},50);
+    var valsList=document.createElement('div');
+    valsList.innerHTML='<h4 style="color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Warto\u015bci lidera ('+leaderResults.length+' odpowiedzi)</h4>';
+    var sorted=Object.keys(aggVc).map(function(k){return{id:parseInt(k),c:aggVc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,5);
+    var ul=document.createElement('ul');ul.className='poster-val-list';
+    for(var vi=0;vi<sorted.length;vi++){var v=valById(sorted[vi].id);
+      ul.innerHTML+='<li><span class="poster-val-num">'+(vi+1)+'</span><span>'+(v?v.pl:'?')+' ('+sorted[vi].c+')</span></li>';}
+    valsList.appendChild(ul);valsRow.appendChild(valsList);
+    lInfo.appendChild(valsRow);
+  } else {lInfo.innerHTML+='<p style="color:var(--muted);font-size:.82rem;margin-top:8px">Brak danych o warto\u015bciach lidera</p>';}
+  lRow.appendChild(lInfo);leaderSec.appendChild(lRow);poster.appendChild(leaderSec);
+  // Team values
+  var cc=getCounts(5,pids);var vc=cc._vc;var tot=pids.length;
+  var teamValSec=document.createElement('div');teamValSec.className='poster-section';
+  teamValSec.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">\ud83c\udfaf Warto\u015bci zespo\u0142u ('+tot+' os\u00f3b)</h3>';
+  if(tot){
+    var tvRow=document.createElement('div');tvRow.className='poster-vals-row';
+    var ringCol2=document.createElement('div');ringCol2.className='poster-ring-wrap';
+    var teamRingId='posterATR_'+team.id;
+    ringCol2.innerHTML='<svg id="'+teamRingId+'" viewBox="-60 -60 720 720"></svg>';
+    tvRow.appendChild(ringCol2);
+    var tts={cc:{},vc:vc,total:tot};for(var ck2 in CATS)tts.cc[ck2]=cc[ck2]||0;
+    setTimeout(function(){buildRingFromStats(teamRingId,tts);},80);
+    var tvList=document.createElement('div');
+    tvList.innerHTML='<h4 style="color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px">Top 10 warto\u015bci</h4>';
+    var sorted2=Object.keys(vc).map(function(k){return{id:parseInt(k),c:vc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+    var ul2=document.createElement('ul');ul2.className='poster-val-list';
+    for(var si=0;si<sorted2.length;si++){var sv=valById(sorted2[si].id);
+      ul2.innerHTML+='<li><span class="poster-val-num">'+(si+1)+'</span><span>'+(sv?sv.pl:'?')+' ('+sorted2[si].c+')</span></li>';}
+    tvList.appendChild(ul2);tvRow.appendChild(tvList);
+    teamValSec.appendChild(tvRow);
+    var catArr=CO.map(function(ck3){return{key:ck3,c:cc[ck3]||0,label:CATS[ck3].pl};}).sort(function(a,b){return b.c-a.c;});
+    var maxCat=catArr.length?catArr[0].c:1;
+    var catDiv=document.createElement('div');catDiv.style.marginTop='16px';
+    catDiv.innerHTML='<h4 style="color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;text-align:center">Ranking kategorii</h4>';
+    catDiv.appendChild(mkVBar(catArr,maxCat,'#5B8A9A'));
+    teamValSec.appendChild(catDiv);
+  } else {teamValSec.innerHTML+='<p style="color:var(--muted);font-size:.82rem">Brak danych</p>';}
+  poster.appendChild(teamValSec);
+  container.appendChild(poster);
+}
 function showAdminTeamDetail(tid){
   var team=TEAMS.find(function(t){return t.id===tid;});if(!team)return;
   var sec=document.getElementById('adminTeamDetail');sec.innerHTML='';sec.classList.add('active');
@@ -547,14 +676,15 @@ function showAdminTeamDetail(tid){
   back.addEventListener('click',function(){sec.classList.remove('active');document.getElementById('adminTeams').classList.add('active');document.getElementById('teamsTabBtn').classList.add('active');refreshTeams();});
   sec.appendChild(back);
   var tabsDiv=document.createElement('div');tabsDiv.className='team-detail-tabs';tabsDiv.style.marginTop='16px';
-  var views=['Osoby','BIO Lidera','Warto\u015bci lidera','Statystyki'];var content=document.createElement('div');
+  var views=['Podsumowanie','Osoby','BIO Lidera','Warto\u015bci lidera','Statystyki'];var content=document.createElement('div');
   function showView(idx){
     content.innerHTML='';
     for(var k=0;k<tabsDiv.children.length;k++)tabsDiv.children[k].classList.toggle('active',k===idx);
-    if(idx===0){var pids=getTeamPids(tid);if(!pids.length){content.innerHTML='<p style="color:var(--muted)">Brak cz\u0142onk\u00f3w</p>';return;}for(var m=0;m<pids.length;m++){var sd=S.studentData[pids[m]];content.innerHTML+='<div style="padding:8px 0;border-bottom:1px solid var(--border)">'+esc(sd.name||'?')+'</div>';}}
-    else if(idx===1){loadBio(content,team);}
-    else if(idx===2){buildLeaderValuesExercise(content,team,true);}
-    else if(idx===3){buildTeamStats(content,tid);}
+    if(idx===0){buildPosterAdmin(content,team);}
+    else if(idx===1){var pids=getTeamPids(tid);if(!pids.length){content.innerHTML='<p style="color:var(--muted)">Brak cz\u0142onk\u00f3w</p>';return;}for(var m=0;m<pids.length;m++){var sd=S.studentData[pids[m]];content.innerHTML+='<div style="padding:8px 0;border-bottom:1px solid var(--border)">'+esc(sd.name||'?')+'</div>';}}
+    else if(idx===2){loadBio(content,team);}
+    else if(idx===3){buildLeaderValuesExercise(content,team,true);}
+    else if(idx===4){buildTeamStats(content,tid);}
   }
   for(var vi=0;vi<views.length;vi++){(function(i){var btn=document.createElement('button');btn.className='team-detail-tab'+(i===0?' active':'');btn.textContent=views[i];btn.addEventListener('click',function(){showView(i);});tabsDiv.appendChild(btn);})(vi);}
   sec.appendChild(tabsDiv);sec.appendChild(content);showView(0);
