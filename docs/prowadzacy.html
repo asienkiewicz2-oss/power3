@@ -7,7 +7,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
-:root{--gold:#C5A55A;--navy:#1B2A4A;--bg:#0F1923;--card:#1A2736;--card2:#1F2F42;--text:#E8E0D0;--muted:#8A9BB0;--border:rgba(197,165,90,0.2);--red:#CD5C5C;--teal:#2E8B8B;--heat:#E8820C}
+:root{--gold:#C5A55A;--navy:#1B2A4A;--bg:#0F1923;--card:#1A2736;--card2:#1F2F42;--text:#E8E0D0;--muted:#8A9BB0;--border:rgba(197,165,90,0.2);--red:#CD5C5C;--teal:#2E8B8B;--heat:#2E8B8B}
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
 .hidden{display:none!important}
@@ -228,6 +228,17 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .profile-rank-label{color:var(--text)}.profile-rank-sub{font-size:.68rem;color:var(--muted);margin-left:4px}
 @media(min-width:601px){.student-mobile-nav,.mobile-menu{display:none!important}.student-desktop-nav{display:flex!important}}
 @media(max-width:600px){.student-desktop-nav{display:none!important}.student-mobile-nav{display:flex!important}}
+.team-photo-upload{margin:16px 0;text-align:center}
+.team-photo-upload label{display:inline-block;background:var(--card);border:2px dashed var(--border);border-radius:12px;padding:12px 20px;cursor:pointer;font-size:.82rem;color:var(--muted);transition:all .15s}
+.team-photo-upload label:hover{border-color:var(--gold);color:var(--gold)}
+.team-photo-upload input[type=file]{display:none}
+.team-photo-img{width:100%;max-width:400px;border-radius:12px;margin:12px auto;display:block;border:2px solid var(--border)}
+.dash-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%;margin:0 auto 16px}
+@media(max-width:600px){.dash-row{grid-template-columns:1fr}}
+.people-list-compact{font-size:.82rem;margin-bottom:12px}
+.people-list-compact div{padding:4px 0;border-bottom:1px solid var(--border);color:var(--text)}
+.leader-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover;display:block}
+
 </style>
 </head>
 <body>
@@ -336,11 +347,12 @@ var SC=["#E74C3C","#E67E22","#F39C12","#2ECC71","#1ABC9C","#3498DB","#9B59B6","#
 var VDESC={1:"Wolność myśli i działania, możliwość samodzielnego decydowania",2:"Zainteresowanie wszystkim, odkrywanie, eksploracja",3:"Oryginalność, wyobraźnia, tworzenie nowych rzeczy",4:"Samodzielność, samowystarczalność, poleganie na sobie",5:"Swoboda w wyznaczaniu własnych celów życiowych",6:"Prawo do prywatnej sfery, do bycia samemu",7:"Wiara we własną wartość jako osoby",8:"Poszukiwanie przygód, ryzyko, odwaga działania",9:"Życie pełne wyzwań, nowości i zmian",10:"Życie pełne ekscytujących doświadczeń i emocji",11:"Czerpanie radości i satysfakcji z życia",12:"Pozwalanie sobie na przyjemności, robienie tego co sprawia radość",13:"Zaspokajanie pragnień i potrzeb",14:"Logiczne myślenie, zdolność analizy i wnioskowania",15:"Skuteczność w działaniu, zdolność realizacji celów",16:"Osiąganie celów, spełnianie ambicji",17:"Silne dążenie do sukcesu, pracowitość, determinacja",18:"Zdolność wpływania na ludzi i bieg wydarzeń",19:"Uznanie i szacunek ze strony innych za osiągnięcia",20:"Dobra materialne, zasoby finansowe, dostatek",21:"Prawo do przewodzenia, wydawania poleceń, bycia liderem",22:"Dbanie o to jak jest się postrzeganym przez innych",23:"Możliwość kontrolowania tego co robią inni ludzie",24:"Dobre zdrowie fizyczne i psychiczne",25:"Zapewnienie bezpieczeństwa i opieki najbliższym",26:"Stabilność i porządek w społeczeństwie",27:"Schludność, porządek w otoczeniu i w życiu",28:"Poczucie że się gdzieś przynależy, jest się częścią grupy",29:"Unikanie bycia dłużnym, odwzajemnianie gestów",30:"Ochrona kraju przed zagrożeniami",31:"Rzetelność, solidność w wypełnianiu obowiązków",32:"Wierność przyjaciołom i grupie, dotrzymywanie słowa",33:"Samokontrola, opieranie się pokusom, konsekwencja",34:"Uprzejmość i dobre maniery w kontaktach z ludźmi",35:"Okazywanie szacunku starszym, szanowanie ich mądrości",36:"Wypełnianie poleceń, podporządkowanie się regułom",37:"Skromność, brak potrzeby wywyższania się",38:"Dystans wobec spraw światowych, rezerwa",39:"Pielęgnowanie zwyczajów i praktyk kulturowych",40:"Głęboka wiara i oddanie sprawom duchowym",41:"Unikanie skrajności, poszukiwanie złotego środka",42:"Pogodzenie się z tym co przynosi życie",43:"Niesienie pomocy innym, wspieranie potrzebujących",44:"Gotowość do wybaczania, brak mściwości",45:"Prawdomówność, szczerość, transparentność",46:"Głębokie, bliskie relacje oparte na zaufaniu",47:"Poczucie celu i sensu w tym co się robi",48:"Głęboka bliskość emocjonalna i duchowa z partnerem",49:"Wewnętrzna harmonia duchowa, refleksja, medytacja",50:"Tolerancja dla odmiennych poglądów i ludzi",51:"Równe szanse i prawa dla wszystkich ludzi",52:"Poczucie jedności ze światem przyrody",53:"Dbanie o środowisko naturalne i ekologię",54:"Pokój wewnętrzny, pogodzenie się z samym sobą",55:"Docenianie piękna w naturze, sztuce i życiu",56:"Walka o sprawiedliwe traktowanie wszystkich",57:"Świat wolny od wojen i konfliktów",58:"Dojrzałe rozumienie życia, głęboka refleksja"};
 var CDESC={"self-direction":"Niezależne myślenie i działanie — wybieranie, tworzenie, odkrywanie. Wywodzi się z potrzeby kontroli i autonomii.","stimulation":"Ekscytacja, nowość i wyzwania w życiu. Wywodzi się z potrzeby różnorodności i stymulacji dla optymalnego funkcjonowania.","hedonism":"Przyjemność i zmysłowe zaspokojenie dla samego siebie. Wywodzi się z potrzeby odczuwania radości.","achievement":"Osobisty sukces poprzez wykazanie kompetencji zgodnie ze standardami społecznymi. Dążenie do bycia lepszym.","power":"Status społeczny i prestiż, kontrola lub dominacja nad ludźmi i zasobami.","security":"Bezpieczeństwo, harmonia i stabilność społeczeństwa, relacji i samego siebie.","conformity":"Powstrzymywanie działań, skłonności i impulsów, które mogą szkodzić innym lub naruszać oczekiwania społeczne.","tradition":"Szacunek, zaangażowanie i akceptacja zwyczajów i idei, które tradycyjna kultura lub religia narzuca jednostce.","benevolence":"Ochrona i pomnażanie dobra ludzi, z którymi jest się w częstym kontakcie osobistym (rodzina, przyjaciele).","universalism":"Zrozumienie, tolerancja i ochrona dobra wszystkich ludzi i natury. Wykracza poza bliski krąg."};
 var TEAMS=[
-  {id:"morgan",name:"J.P. Morgan",initials:"JPM",color:"#D35400",desc:"Bankier, budowniczy imperium finansowego \u2014 decyzyjno\u015b\u0107, w\u0142adza, wizja strategiczna",bio:'<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,#D35400,#E67E22)">JPM</div><div class="leader-caption">John Pierpont Morgan<span>1837\u20131913 \u2022 USA</span></div></div><h3>Kim by\u0142 J.P. Morgan?</h3><p>Ameryka\u0144ski finansista i bankier \u2014 jeden z najpot\u0119\u017cniejszych ludzi w historii biznesu. Stworzy\u0142 imperium J.P. Morgan & Co., kt\u00f3re ukszta\u0142towa\u0142o nowoczesny system finansowy USA. W czasach gdy nie istnia\u0142 bank centralny, Morgan pe\u0142ni\u0142 de facto t\u0119 rol\u0119 jednoosobowo.</p><h3>Droga do przyw\u00f3dztwa</h3><p>Syn bankiera Juniusa Spencera Morgana, ucz\u0105cy si\u0119 finans\u00f3w od dzieci\u0144stwa. Po studiach w Getyndze rozpocz\u0105\u0142 karier\u0119 na Wall Street. Szybko wyr\u00f3\u017cni\u0142 si\u0119 umiej\u0119tno\u015bci\u0105 \u0142\u0105czenia sprzecznych interes\u00f3w \u2014 organizowa\u0142 fuzje tworz\u0105ce gigant\u00f3w przemys\u0142u, w tym U.S. Steel \u2014 pierwsz\u0105 korporacj\u0119 o warto\u015bci miliarda dolar\u00f3w.</p><h3>Case study: Panika 1907</h3><p>W pa\u017adzierniku 1907 roku system finansowy USA stan\u0105\u0142 na kraw\u0119dzi za\u0142amania. Banki pada\u0142y jeden po drugim, gie\u0142da traci\u0142a 50% warto\u015bci. Nie by\u0142o banku centralnego.</p><p>J.P. Morgan, maj\u0105c 70 lat, zamkn\u0105\u0142 najwa\u017cniejszych bankier\u00f3w w swojej bibliotece na Manhattanie i nie wypu\u015bci\u0142 ich, dop\u00f3ki nie uzgodnili planu ratunkowego. Wymusi\u0142 wsp\u00f3\u0142prac\u0119, zorganizowa\u0142 po\u017cyczki mi\u0119dzy bankami, a gdy to nie wystarczy\u0142o \u2014 wy\u0142o\u017cy\u0142 w\u0142asne pieni\u0105dze. W ci\u0105gu dw\u00f3ch tygodni opanowa\u0142 kryzys.</p><h3>Styl przyw\u00f3dztwa</h3><ul><li><strong>Decyzyjno\u015b\u0107</strong> \u2014 b\u0142yskawiczne decyzje pod presj\u0105</li><li><strong>Autorytet osobisty</strong> \u2014 jego s\u0142owo by\u0142o silniejsze ni\u017c kontrakty</li><li><strong>Wizja strategiczna</strong> \u2014 widzia\u0142 du\u017cy obraz, gdy inni widzieli chaos</li><li><strong>Odwaga</strong> \u2014 ryzykowa\u0142 w\u0142asnym maj\u0105tkiem dla stabilno\u015bci systemu</li><li><strong>Kontrola</strong> \u2014 wymaga\u0142 lojalno\u015bci i pos\u0142usze\u0144stwa</li></ul>'},
-  {id:"ardern",name:"Jacinda Ardern",initials:"JA",color:"#9B59B6",desc:"Premier Nowej Zelandii \u2014 empatia, autentyczno\u015b\u0107, przyw\u00f3dztwo w kryzysie",bio:'<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,#9B59B6,#8E44AD)">JA</div><div class="leader-caption">Jacinda Ardern<span>ur. 1980 \u2022 Nowa Zelandia</span></div></div><h3>Kim jest Jacinda Ardern?</h3><p>Premier Nowej Zelandii w latach 2017\u20132023. Obj\u0119\u0142a urz\u0105d w wieku 37 lat jako najm\u0142odsza szefowa rz\u0105du na \u015bwiecie. Sta\u0142a si\u0119 globaln\u0105 ikon\u0105 empatycznego przyw\u00f3dztwa \u2014 przyw\u00f3dztwa opartego na wsp\u00f3\u0142czuciu, autentyczno\u015bci i odwadze bycia sob\u0105.</p><h3>Droga do przyw\u00f3dztwa</h3><p>Dzia\u0142aczka Partii Pracy od m\u0142odo\u015bci, wcze\u015bniej doradczyni Tony\'ego Blaira. Zosta\u0142a liderka partii zaledwie 7 tygodni przed wyborami \u2014 i wygra\u0142a. Jako premier urodzi\u0142a dziecko, \u0142ami\u0105c stereotypy o kobietach w polityce.</p><h3>Case study: Zamachy w Christchurch (2019)</h3><p>15 marca 2019 roku terrorysta zamordowa\u0142 51 os\u00f3b w dwu meczetach. Reakcja Ardern sta\u0142a si\u0119 wzorem kryzysowego przyw\u00f3dztwa:</p><ul><li>W ci\u0105gu godzin za\u0142o\u017cy\u0142a hid\u017cab i przytula\u0142a rodziny ofiar</li><li>Powiedzia\u0142a: \u201eOni s\u0105 nami\u201d (They are us) \u2014 redefiniuj\u0105c to\u017csamo\u015b\u0107 narodow\u0105</li><li>W 6 dni przeprowadzi\u0142a reform\u0119 prawa o broni palnej</li><li>Konsekwentnie odmawia\u0142a u\u017cywania imienia zamachowca</li></ul><h3>Case study: Rezygnacja (2023)</h3><p>W styczniu 2023 roku Ardern og\u0142osi\u0142a rezygnacj\u0119 s\u0142owami: \u201eNie mam ju\u017c wystarczaj\u0105co du\u017co energii w zbiorniku\u201d. Ta decyzja sta\u0142a si\u0119 wyk\u0142adem o autentyczno\u015bci i zr\u00f3wnowa\u017conym przyw\u00f3dztwie \u2014 lider ma prawo powiedzie\u0107 \u201edo\u015b\u0107\u201d.</p><h3>Styl przyw\u00f3dztwa</h3><ul><li><strong>Empatia</strong> \u2014 autentyczne wsp\u00f3\u0142czucie jako si\u0142a, nie s\u0142abo\u015b\u0107</li><li><strong>Autentyczno\u015b\u0107</strong> \u2014 sp\u00f3jno\u015b\u0107 mi\u0119dzy warto\u015bciami a dzia\u0142aniem</li><li><strong>Odwaga moralna</strong> \u2014 szybkie, zdecydowane dzia\u0142anie w kryzysie</li><li><strong>Inkluzywno\u015b\u0107</strong> \u2014 budowanie wsp\u00f3lnoty ponad podzia\u0142ami</li><li><strong>Pokora</strong> \u2014 uznanie w\u0142asnych ogranicze\u0144</li></ul>'},
-  {id:"swiatek",name:"Iga \u015awi\u0105tek",initials:"I\u015a",color:"#E74C3C",desc:"Polska tenisistka nr 1 \u2014 dyscyplina, si\u0142a mentalna, determinacja",bio:'<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,#E74C3C,#C0392B)">I\u015a</div><div class="leader-caption">Iga \u015awi\u0105tek<span>ur. 2001 \u2022 Polska</span></div></div><h3>Kim jest Iga \u015awi\u0105tek?</h3><p>Polska tenisistka, wielokrotna zwyci\u0119\u017czyni turniej\u00f3w wielkoszlemowych, by\u0142a numer 1 rankingu WTA. Pierwsza Polka, kt\u00f3ra wygra\u0142a Wielkiego Szlema (Roland Garros 2020). Symbol dyscypliny, si\u0142y mentalnej i systematycznej pracy nad sob\u0105.</p><h3>Droga do przyw\u00f3dztwa</h3><p>C\u00f3rka olimpijczyka wio\u015blarza Tomasza \u015awi\u0105tka. Zacz\u0119\u0142a gra\u0107 w tenisa w wieku 5 lat. Prze\u0142omowy moment: zwyci\u0119stwo w Roland Garros 2020 jako 19-latka, bez straty seta \u2014 co uznano za jeden z najbardziej dominuj\u0105cych debiut\u00f3w w historii.</p><h3>Case study: Praca z psychologiem sportowym</h3><p>\u015awi\u0105tek od lat wsp\u00f3\u0142pracuje z psycholo\u017ck\u0105 sportow\u0105 Dari\u0105 Abramowicz, kt\u00f3ra jest sta\u0142ym cz\u0142onkiem jej zespo\u0142u. To wyj\u0105tkowe w \u015bwiecie tenisa, gdzie temat zdrowia psychicznego by\u0142 d\u0142ugo tabu.</p><ul><li>Medytacja i mindfulness jako sta\u0142y element przygotowa\u0144</li><li>Techniki regulacji emocji mi\u0119dzy gemami</li><li>\u201eTrakuj\u0119 tenis jako spos\u00f3b testowania swoich mentalnych granic\u201d</li><li>Otwarta rozmowa o presji i stresie \u2014 inspiracja dla m\u0142odych sportowc\u00f3w</li></ul><h3>Case study: Seria 37 zwyci\u0119stw (2022)</h3><p>Mi\u0119dzy lutym a lipcem 2022 roku \u015awi\u0105tek wygra\u0142a 37 mecz\u00f3w z rz\u0119du \u2014 najd\u0142u\u017csza seria w tym stuleciu. Kluczem by\u0142a nie tylko technika, ale siedzenie w \u201eflow state\u201d \u2014 stanie optymalnego skupienia, nad kt\u00f3rym pracowa\u0142a z Abramowicz.</p><h3>Styl przyw\u00f3dztwa</h3><ul><li><strong>Dyscyplina</strong> \u2014 rygorystyczny plan treningowy i mental routine</li><li><strong>Si\u0142a mentalna</strong> \u2014 przezwyci\u0119\u017canie presji na najwy\u017cszym poziomie</li><li><strong>Pokora</strong> \u2014 mimo sukces\u00f3w, otwarto\u015b\u0107 na krytyk\u0119 i rozw\u00f3j</li><li><strong>Autentyczno\u015b\u0107</strong> \u2014 nie ukrywa emocji, m\u00f3wi o trudno\u015bciach</li><li><strong>Przyw\u00f3dztwo przez przyk\u0142ad</strong> \u2014 normalizacja pracy z psychologiem</li></ul>'},
-  {id:"obama",name:"Barack Obama",initials:"BO",color:"#2980B9",desc:"44. prezydent USA \u2014 charyzma, wizja zmiany, inspirowanie milion\u00f3w",bio:'<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,#2980B9,#2C3E50)">BO</div><div class="leader-caption">Barack Obama<span>ur. 1961 \u2022 USA</span></div></div><h3>Kim jest Barack Obama?</h3><p>44. prezydent Stan\u00f3w Zjednoczonych (2009\u20132017), pierwszy czarnosk\u00f3ry prezydent w historii USA. Community organizer, prawnik, senator \u2014 przeszed\u0142 drog\u0119 od pracy spo\u0142ecznej w Chicago do najwy\u017cszego urz\u0119du. Laureat Pokojowej Nagrody Nobla (2009).</p><h3>Droga do przyw\u00f3dztwa</h3><p>Wychowany przez samotn\u0105 matk\u0119 i dziadk\u00f3w na Hawajach. Jako community organizer w po\u0142udniowym Chicago organizowa\u0142 lokalne spo\u0142eczno\u015bci \u2014 uczy\u0142 si\u0119, \u017ce prawdziwa zmiana zaczyna si\u0119 od s\u0142uchania ludzi. Te do\u015bwiadczenia ukszta\u0142towa\u0142y jego styl przyw\u00f3dztwa: inkluzywny, oparty na dialogu i nadziei.</p><h3>Case study: Kampania \u201eYes We Can\u201d (2008)</h3><p>Kampania prezydencka Obamy zmieni\u0142a regu\u0142y gry politycznej:</p><ul><li>Zbudowa\u0142 ruch oddolny (grassroots) \u2014 miliony wolontariuszy, rekordowe ma\u0142e wp\u0142aty</li><li>Has\u0142o \u201eYes We Can\u201d sta\u0142o si\u0119 globalnym symbolem nadziei i zmiany</li><li>Mistrzowskie wykorzystanie social medi\u00f3w (pierwsza cyfrowa kampania)</li><li>Przekaz: \u201eNie chodzi o mnie \u2014 chodzi o Was\u201d \u2014 w\u0142adza nale\u017cy do ludzi</li></ul><h3>Case study: Reforma zdrowotna (ACA)</h3><p>Affordable Care Act \u2014 reforma zapewniaj\u0105ca ubezpieczenie zdrowotne milionom Amerykan\u00f3w \u2014 by\u0142a przyk\u0142adem przyw\u00f3dztwa d\u0142ugoterminowego. Obama forsowa\u0142 j\u0105 przez lata mimo oporu politycznego, atak\u00f3w medialnych i spadaj\u0105cych sonda\u017cy. Pokaza\u0142, \u017ce lider czasem musi po\u015bwi\u0119ci\u0107 popularno\u015b\u0107 dla wizji.</p><h3>Styl przyw\u00f3dztwa</h3><ul><li><strong>Wizja</strong> \u2014 zdolno\u015b\u0107 malowania obrazu lepszej przysz\u0142o\u015bci</li><li><strong>Komunikacja</strong> \u2014 jeden z najlepszych m\u00f3wc\u00f3w naszych czas\u00f3w</li><li><strong>Empatia</strong> \u2014 autentyczne s\u0142uchanie i rozumienie r\u00f3\u017cnych perspektyw</li><li><strong>Wytrwa\u0142o\u015b\u0107</strong> \u2014 determinacja mimo oporu i krytyki</li><li><strong>Budowanie most\u00f3w</strong> \u2014 szukanie porozumienia ponad podzia\u0142ami</li></ul>'}
+  {id:"morgan",name:"J.P. Morgan",initials:"JPM",color:"#D35400",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/d/d0/J.P._Morgan_%28cropped%29.jpg/220px-J.P._Morgan_%28cropped%29.jpg",bioFile:"bios/morgan.html",subtitle:"1837\u20131913 \u2022 USA",desc:"Bankier, budowniczy imperium finansowego \u2014 decyzyjno\u015b\u0107, w\u0142adza, wizja strategiczna"},
+  {id:"ardern",name:"Jacinda Ardern",initials:"JA",color:"#9B59B6",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/b/b6/New_Zealand_Prime_Minister_Jacinda_Ardern_in_2018.jpg/220px-New_Zealand_Prime_Minister_Jacinda_Ardern_in_2018.jpg",bioFile:"bios/ardern.html",subtitle:"ur. 1980 \u2022 Nowa Zelandia",desc:"Premier Nowej Zelandii \u2014 empatia, autentyczno\u015b\u0107, przyw\u00f3dztwo w kryzysie"},
+  {id:"swiatek",name:"Iga \u015awi\u0105tek",initials:"I\u015a",color:"#E74C3C",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Iga_Swiatek_2023_Cropped_%2B_Retouched.jpg/220px-Iga_Swiatek_2023_Cropped_%2B_Retouched.jpg",bioFile:"bios/swiatek.html",subtitle:"ur. 2001 \u2022 Polska",desc:"Polska tenisistka nr 1 \u2014 dyscyplina, si\u0142a mentalna, determinacja"},
+  {id:"obama",name:"Barack Obama",initials:"BO",color:"#2980B9",img:"https://upload.wikimedia.org/wikipedia/commons/thumb/8/8d/President_Barack_Obama.jpg/220px-President_Barack_Obama.jpg",bioFile:"bios/obama.html",subtitle:"ur. 1961 \u2022 USA",desc:"44. prezydent USA \u2014 charyzma, wizja zmiany, inspirowanie milion\u00f3w"}
 ];
+
 var SK='values_explorer_student';
 var S={mode:null,roomCode:'',peer:null,connections:[],conn:null,studentData:{},currentLimit:10,snapshots:{},teamsEnabled:false,maxMembers:5,studentName:'',selected:[],ranked:[],maxSelect:10,myTeam:null,dashLimit:5,dashDims:['openness','enhancement','conservation','transcendence']};
 
@@ -404,6 +416,7 @@ function onSMsg(pid,d){
   else if(d.type==='rerank'){sd.ranked=d.values;}
   else if(d.type==='team'){sd.team=d.team;sd.phase='teams';}
   else if(d.type==='leaderEx'){sd.leaderEx=d;}
+  else if(d.type==='teamPhoto'){broadcast({type:'teamPhoto',team:d.team,data:d.data});}
   sd.lastSeen=Date.now();
   upAll();
 }
@@ -464,6 +477,54 @@ function refreshTeams(){
     g.appendChild(card);
   })(TEAMS[i]);}
 }
+
+function loadBio(container,team){
+  container.innerHTML='<p style="text-align:center;color:var(--muted)">\u0141adowanie...</p>';
+  var photoHdr='<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,'+team.color+',#333)">'+(team.img?'<img src="'+team.img+'" alt="'+esc(team.name)+'" onerror="this.style.display=\'none\';this.parentElement.textContent=\''+team.initials+'\'">':team.initials)+'</div><div class="leader-caption">'+esc(team.name)+'<span>'+(team.subtitle||'')+'</span></div></div>';
+  fetch(team.bioFile).then(function(r){if(!r.ok)throw new Error(r.status);return r.text();}).then(function(html){
+    container.innerHTML='<div class="bio-text">'+photoHdr+html+'</div>';
+  }).catch(function(){container.innerHTML='<div class="bio-text">'+photoHdr+'<p style="color:var(--muted)">Nie uda\u0142o si\u0119 za\u0142adowa\u0107 BIO.</p></div>';});
+}
+
+function buildTeamStatsSection(container,ts,team,titleOverride){
+  var subtitle=titleOverride||('Zesp\u00f3\u0142: '+team.name);
+  container.innerHTML='<div class="page-sub" style="margin-bottom:12px;text-align:left">'+esc(subtitle)+' \u2014 '+ts.total+' os\u00f3b</div>';
+  var pids=getTeamPids(team.id);
+  if(pids.length){
+    var pList=document.createElement('div');pList.className='people-list-compact';
+    for(var pi=0;pi<pids.length;pi++){var sd=S.studentData?S.studentData[pids[pi]]:null;if(!sd)continue;var pe=document.createElement('div');pe.textContent=sd.name||'?';pList.appendChild(pe);}
+    container.appendChild(pList);
+  }
+  var row1=document.createElement('div');row1.className='dash-row';
+  var svgId='stSec_'+Math.random().toString(36).substr(2,4);
+  var ringCard=document.createElement('div');ringCard.className='dash-card ring-small';ringCard.style.cursor='default';
+  ringCard.innerHTML='<h3>Ko\u0142o Schwartza</h3><div class="heatmap-wrap"><svg id="'+svgId+'" viewBox="-60 -60 720 720"></svg></div>';
+  row1.appendChild(ringCard);
+  setTimeout(function(){buildRingFromStats(svgId,ts);},50);
+  var vc=ts.vc;
+  var valCard=document.createElement('div');valCard.className='dash-card';valCard.style.cursor='default';
+  var vh=document.createElement('h3');vh.textContent='Top 10 warto\u015bci';valCard.appendChild(vh);
+  var sorted=Object.keys(vc).map(function(k){return{id:parseInt(k),c:vc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+  var maxV=sorted.length?sorted[0].c:1;
+  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);valCard.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
+  row1.appendChild(valCard);
+  container.appendChild(row1);
+  var row2=document.createElement('div');row2.className='dash-row';
+  var catCard=document.createElement('div');catCard.className='dash-card';catCard.style.cursor='default';
+  var ch=document.createElement('h3');ch.textContent='Ranking kategorii';catCard.appendChild(ch);
+  var catArr=CO.map(function(ck){return{key:ck,c:ts.cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
+  var maxCat=catArr.length?catArr[0].c:1;
+  for(var ji=0;ji<catArr.length;ji++)catCard.appendChild(mkBar(CATS[catArr[ji].key].pl,catArr[ji].c,maxCat,'#5B8A9A'));
+  row2.appendChild(catCard);
+  var dimCard=document.createElement('div');dimCard.className='dash-card';dimCard.style.cursor='default';
+  var dh=document.createElement('h3');dh.textContent='Wymiary Schwartza';dimCard.appendChild(dh);
+  var dCol2={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
+  var dimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck2){s+=(ts.cc[ck2]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
+  var maxDim=dimArr.length?dimArr[0].c:1;
+  for(var dii=0;dii<dimArr.length;dii++)dimCard.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol2[dimArr[dii].key]));
+  row2.appendChild(dimCard);
+  container.appendChild(row2);
+}
 function showAdminTeamDetail(tid){
   var team=TEAMS.find(function(t){return t.id===tid;});if(!team)return;
   var sec=document.getElementById('adminTeamDetail');sec.innerHTML='';sec.classList.add('active');
@@ -478,7 +539,7 @@ function showAdminTeamDetail(tid){
     content.innerHTML='';
     for(var k=0;k<tabsDiv.children.length;k++)tabsDiv.children[k].classList.toggle('active',k===idx);
     if(idx===0){var pids=getTeamPids(tid);if(!pids.length){content.innerHTML='<p style="color:var(--muted)">Brak cz\u0142onk\u00f3w</p>';return;}for(var m=0;m<pids.length;m++){var sd=S.studentData[pids[m]];content.innerHTML+='<div style="padding:8px 0;border-bottom:1px solid var(--border)">'+esc(sd.name||'?')+'</div>';}}
-    else if(idx===1){content.innerHTML='<div class="bio-text">'+team.bio+'</div>';}
+    else if(idx===1){loadBio(content,team);}
     else if(idx===2){buildLeaderValuesExercise(content,team,true);}
     else if(idx===3){buildTeamStats(content,tid);}
   }
@@ -496,15 +557,15 @@ function buildTeamStats(container,tid){
   setTimeout(function(){buildRing(svgId,ttId,5,pids);},50);
   var c1=mkCard('Top 10 wartości');var sorted=Object.keys(vc).map(function(k){return{id:parseInt(k),c:vc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
   var maxV=sorted.length?sorted[0].c:1;
-  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,CATS[sv?sv.cat:'']?CATS[sv.cat].color:'#C5A55A'));}
+  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
   grid.appendChild(c1.el);
   var c2=mkCard('Ranking kategorii');
   var catArr=CO.map(function(ck){return{key:ck,c:cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
   var maxCat=catArr.length?catArr[0].c:1;
-  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,CATS[catArr[j].key].color));
+  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,'#5B8A9A'));
   grid.appendChild(c2.el);
   var c3=mkCard('Wymiary Schwartza');
-  var dCol={openness:'#E74C3C',enhancement:'#E67E22',conservation:'#2980B9',transcendence:'#9B59B6'};
+  var dCol={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
   var dimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
   var maxDim=dimArr.length?dimArr[0].c:1;
   for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
@@ -530,7 +591,7 @@ function buildRing(svgId,ttId,lim,filterPids){
   var activeDims=filterPids?['openness','enhancement','conservation','transcendence']:S.dashDims;
   for(var i=0;i<n;i++){var sa=-90+i*st,ea=sa+st;var cat=CO[i];var catDim=CATS[cat].dim;var dimActive=activeDims.indexOf(catDim)>=0;
     var c=cc[cat]||0;var inten=dimActive?Math.min(c/Math.max(maxC,1),1):0;
-    var el=svgE('path',{d:arcP(cx,cy,r2,R,sa,ea),fill:hR('#E8820C',dimActive?(0.04+inten*0.7):0.02),stroke:'rgba(255,255,255,'+(dimActive?'0.12':'0.04')+')','stroke-width':1.5,cursor:'pointer',opacity:dimActive?1:0.3});svg.appendChild(el);
+    var el=svgE('path',{d:arcP(cx,cy,r2,R,sa,ea),fill:hR('#2E8B8B',dimActive?(0.04+inten*0.7):0.02),stroke:'rgba(255,255,255,'+(dimActive?'0.12':'0.04')+')','stroke-width':1.5,cursor:'pointer',opacity:dimActive?1:0.3});svg.appendChild(el);
     var ma=sa+st/2;var lr=R*0.78,lx=cx+lr*Math.cos(ma*Math.PI/180),ly=cy+lr*Math.sin(ma*Math.PI/180);
     var lb=svgE('text',{x:lx,y:ly,fill:'#fff','font-size':'11.5','font-weight':'700','text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none',opacity:dimActive?1:0.2});lb.textContent=CATS[cat].pl;var rot=ma;if(rot>90&&rot<270)rot+=180;lb.setAttribute('transform','rotate('+rot+','+lx+','+ly+')');svg.appendChild(lb);
     var cr2=R*0.52,ccx2=cx+cr2*Math.cos(ma*Math.PI/180),ccy2=cy+cr2*Math.sin(ma*Math.PI/180);
@@ -598,14 +659,14 @@ function buildDash(lim){
   var fvc={};for(var vid in vc){var v=valById(parseInt(vid));if(v&&activeCats[v.cat])fvc[vid]=vc[vid];}
   var c1=mkCard('Top 10 wartości');var sorted=Object.keys(fvc).map(function(k){return{id:parseInt(k),c:fvc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
   var maxV=sorted.length?sorted[0].c:1;
-  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,CATS[sv?sv.cat:'']?CATS[sv.cat].color:'#C5A55A'));}
+  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
   grid.appendChild(c1.el);
   var c2=mkCard('Ranking kategorii');var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
   var maxCat=catArr.length?catArr[0].c:1;
-  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,CATS[catArr[j].key].color));
+  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,'#5B8A9A'));
   grid.appendChild(c2.el);
   var c3=mkCard('Wymiary Schwartza');var dimArr=S.dashDims.map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
-  var maxDim=dimArr.length?dimArr[0].c:1;var dCol={openness:'#E74C3C',enhancement:'#E67E22',conservation:'#2980B9',transcendence:'#9B59B6'};
+  var maxDim=dimArr.length?dimArr[0].c:1;var dCol={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
   for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
   grid.appendChild(c3.el);
 }
