@@ -958,48 +958,43 @@ function initDimFilter(){
   })(dims[i]);}
 }
 function buildDash(lim){
-  takeSnap(lim);var grid=document.getElementById('dashGrid');grid.innerHTML='';var cc=getCounts(lim);var vc=cc._vc;var tot=Object.keys(S.studentData).length;
+  takeSnap(lim);var grid=document.getElementById('dashGrid');grid.innerHTML='';grid.style.display='block';
+  var cc=getCounts(lim);var vc=cc._vc;var tot=Object.keys(S.studentData).length;
   document.getElementById('dashSub').textContent='Top '+lim+' \u2014 '+tot+' student\u00f3w';
-  if(S.teamsEnabled){
-    grid.style.display='block';
-    var hasAny=false;
-    for(var ti=0;ti<TEAMS.length;ti++){
-      var team=TEAMS[ti];var pids=getTeamPids(team.id);if(!pids.length)continue;hasAny=true;
-      var wrap=document.createElement('div');wrap.style.cssText='margin-bottom:32px';
-      var ccP=getCounts(lim,pids);
-      var memP=pids.map(function(p){return S.studentData[p]&&S.studentData[p].name||null;}).filter(function(n){return !!n;});
-      var tsP={cc:{},vc:ccP._vc||{},total:pids.length,members:memP};for(var ckP in CATS)tsP.cc[ckP]=ccP[ckP]||0;
-      var lsP=null;var lR=[];
-      for(var pi=0;pi<pids.length;pi++){var sdP=S.studentData[pids[pi]];if(sdP&&sdP.leaderEx&&sdP.leaderEx.vals&&sdP.leaderEx.vals.length)lR.push(sdP.leaderEx);}
-      if(lR.length){var lcc={},lvc={};for(var ckL in CATS)lcc[ckL]=0;for(var ri=0;ri<lR.length;ri++){for(var rvi=0;rvi<lR[ri].vals.length;rvi++){var vid=lR[ri].vals[rvi];lvc[vid]=(lvc[vid]||0)+1;var vO=valById(vid);if(vO)lcc[vO.cat]=(lcc[vO.cat]||0)+1;}}lsP={cc:lcc,vc:lvc,total:lR.length};}
-      buildPoster(wrap,team,{teamStats:tsP,leaderStats:lsP,memberNames:memP});
-      grid.appendChild(wrap);
-    }
-    if(!hasAny)grid.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px">Brak zespo\u0142\u00f3w z cz\u0142onkami</div>';
-    return;
-  }
-  grid.style.display='';
-  var c0=document.createElement('div');c0.className='dash-card fullcard ring-small';
-  c0.innerHTML='<h3>Ko\u0142o Schwartza</h3><div class="heatmap-wrap"><svg id="dashRingSvg" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="dashRingTT"></div></div>';
-  var bk0=document.createElement('button');bk0.className='secondary-btn dash-back';bk0.textContent='\u2190 Wr\u00f3\u0107';bk0.addEventListener('click',function(ev){ev.stopPropagation();c0.classList.remove('expanded');});
-  c0.insertBefore(bk0,c0.firstChild);
-  c0.addEventListener('click',function(e){if(!c0.classList.contains('expanded')&&e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')c0.classList.add('expanded');});
-  grid.appendChild(c0);
-  setTimeout(function(){buildRing('dashRingSvg','dashRingTT',lim);},50);
   var activeCats={};for(var di=0;di<S.dashDims.length;di++){var cats=DIM_CATS[S.dashDims[di]];for(var ci=0;ci<cats.length;ci++)activeCats[cats[ci]]=true;}
+  // 1) Schwartz Ring
+  var sec0=document.createElement('div');sec0.className='poster-section';
+  sec0.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:12px">\ud83c\udf10 Ko\u0142o Schwartza</h3>';
+  var ringWrap=document.createElement('div');ringWrap.className='heatmap-wrap';ringWrap.style.maxWidth='600px';
+  ringWrap.innerHTML='<svg id="dashRingSvg" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="dashRingTT"></div>';
+  sec0.appendChild(ringWrap);grid.appendChild(sec0);
+  setTimeout(function(){buildRing('dashRingSvg','dashRingTT',lim);},50);
+  // 2) Top values
   var fvc={};for(var vid2 in vc){var v=valById(parseInt(vid2));if(v&&activeCats[v.cat])fvc[vid2]=vc[vid2];}
-  var c1=mkCard('Top 10 warto\u015bci');var sorted=Object.keys(fvc).map(function(k){return{id:parseInt(k),c:fvc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+  var sec1=document.createElement('div');sec1.className='poster-section';
+  sec1.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:12px">\ud83c\udfc6 Top 10 warto\u015bci</h3>';
+  var sorted=Object.keys(fvc).map(function(k){return{id:parseInt(k),c:fvc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
   var maxV=sorted.length?sorted[0].c:1;
-  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
-  grid.appendChild(c1.el);
-  var c2=mkCard('Kategorie warto\u015bci');var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0,label:CATS[ck].pl};}).sort(function(a,b){return b.c-a.c;});
+  var barsWrap1=document.createElement('div');barsWrap1.style.maxWidth='600px';barsWrap1.style.margin='0 auto';
+  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);barsWrap1.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
+  sec1.appendChild(barsWrap1);grid.appendChild(sec1);
+  // 3) Categories
+  var sec2=document.createElement('div');sec2.className='poster-section';
+  sec2.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:12px">\ud83d\udcca Kategorie warto\u015bci</h3>';
+  var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0,label:CATS[ck].pl};}).sort(function(a,b){return b.c-a.c;});
   var maxCat=catArr.length?catArr[0].c:1;
-  c2.cnt.appendChild(mkVBar(catArr,maxCat,'#5B8A9A'));
-  grid.appendChild(c2.el);
-  var c3=mkCard('Wymiary Schwartza');var dimArr=S.dashDims.map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
-  var maxDim=dimArr.length?dimArr[0].c:1;var dCol={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
-  for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
-  grid.appendChild(c3.el);
+  var barsWrap2=document.createElement('div');barsWrap2.style.maxWidth='600px';barsWrap2.style.margin='0 auto';
+  for(var ci2=0;ci2<catArr.length;ci2++){barsWrap2.appendChild(mkBar(catArr[ci2].label,catArr[ci2].c,maxCat,CATS[catArr[ci2].key].color||'#5B8A9A'));}
+  sec2.appendChild(barsWrap2);grid.appendChild(sec2);
+  // 4) Dimensions
+  var sec3=document.createElement('div');sec3.className='poster-section';
+  sec3.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:12px">\ud83d\udd2c Wymiary Schwartza</h3>';
+  var dCol={openness:'#C0695C',enhancement:'#C5A55A',conservation:'#5B8A9A',transcendence:'#8A6BA8'};
+  var dimArr=S.dashDims.map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
+  var maxDim=dimArr.length?dimArr[0].c:1;
+  var barsWrap3=document.createElement('div');barsWrap3.style.maxWidth='600px';barsWrap3.style.margin='0 auto';
+  for(var dii=0;dii<dimArr.length;dii++){barsWrap3.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));}
+  sec3.appendChild(barsWrap3);grid.appendChild(sec3);
 }
 
 function mkCard(title){
