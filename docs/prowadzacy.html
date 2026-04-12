@@ -512,9 +512,33 @@ function sbSaveAllStudents(){
         top10:sd.top10||[],ranked:sd.ranked||[],
         leader_ex:sd.leaderEx||null,phase:sd.phase||'selecting'
       });
+      if(sd.top10&&sd.top10.length)sbSaveValueMappings('student',pid,'top10',sd.top10);
+      if(sd.ranked&&sd.ranked.length)sbSaveValueMappings('student',pid,'ranked',sd.ranked);
     }
   },2000);
 }
+
+// --- Value Mappings CRUD ---
+function sbSaveValueMappings(entityType,entityId,mappingType,valueIds,cb){
+  if(!SB_SID){if(cb)cb();return;}
+  var filterKey=entityType==='student'?'student_id':'team_id';
+  sbFetch('value_mappings?'+filterKey+'=eq.'+encodeURIComponent(entityId)+'&mapping_type=eq.'+mappingType+'&session_id=eq.'+SB_SID,{method:'DELETE'})
+    .then(function(){
+      if(!valueIds||!valueIds.length){if(cb)cb();return;}
+      var rows=[];
+      for(var i=0;i<valueIds.length;i++){
+        var row={value_id:valueIds[i],session_id:SB_SID,mapping_type:mappingType,order_position:i+1};
+        if(entityType==='student')row.student_id=entityId;else row.team_id=entityId;
+        rows.push(row);
+      }
+      return sbFetch('value_mappings',{method:'POST',body:rows});
+    }).then(function(){if(cb)cb();}).catch(function(){if(cb)cb();});
+}
+function sbLoadValueMappings(cb){
+  if(!SB_SID){cb([]);return;}
+  sbFetch('value_mappings?session_id=eq.'+SB_SID+'&order=order_position.asc').then(function(r){return r.json();}).then(function(rows){cb(rows||[]);}).catch(function(){cb([]);});
+}
+function sbSaveTeamValues(teamId,valueIds,cb){sbSaveValueMappings('team',teamId,'team_ranked',valueIds,cb);}
 
 // --- Presenter: full load from DB ---
 function sbLoadFullSession(cb){
@@ -537,7 +561,34 @@ function sbLoadFullSession(cb){
             leaderEx:st.leader_ex||null
           };
         }
-        cb(result);
+        // Load value_mappings and override arrays with ordered DB data
+        sbLoadValueMappings(function(mappings){
+          for(var mi=0;mi<mappings.length;mi++){
+            var m=mappings[mi];
+            if(m.student_id){
+              for(var pk in result.studentData){
+                var sd=result.studentData[pk];
+                if(pk===m.student_id||sd.deviceId===m.student_id){
+                  if(m.mapping_type==='top10'){if(!sd._vmTop10)sd._vmTop10=[];sd._vmTop10.push(m.value_id);}
+                  if(m.mapping_type==='ranked'){if(!sd._vmRanked)sd._vmRanked=[];sd._vmRanked.push(m.value_id);}
+                  break;
+                }
+              }
+            }
+            if(m.team_id&&m.mapping_type==='team_ranked'){
+              var lid=m.team_id.replace(SB_SID+'_','');
+              if(!result.teamData[lid])result.teamData[lid]={};
+              if(!result.teamData[lid].rankedValues)result.teamData[lid].rankedValues=[];
+              result.teamData[lid].rankedValues.push(m.value_id);
+            }
+          }
+          for(var sk in result.studentData){
+            var ssd=result.studentData[sk];
+            if(ssd._vmTop10&&ssd._vmTop10.length){ssd.top10=ssd._vmTop10;}delete ssd._vmTop10;
+            if(ssd._vmRanked&&ssd._vmRanked.length){ssd.ranked=ssd._vmRanked;}delete ssd._vmRanked;
+          }
+          cb(result);
+        });
       });
     });
   });
@@ -553,6 +604,8 @@ function sbSaveStudentSelf(){
       team_id:teamId,top10:S.selected||[],ranked:S.ranked||[],
       leader_ex:S.leaderEx||null,phase:curScreen()==='teamView'?'teams':'selecting'
     });
+    if(S.selected&&S.selected.length)sbSaveValueMappings('student',DEVICE_ID,'top10',S.selected);
+    if(S.ranked&&S.ranked.length)sbSaveValueMappings('student',DEVICE_ID,'ranked',S.ranked);
   },1500);
 }
 
