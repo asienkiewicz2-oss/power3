@@ -196,6 +196,37 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .conn-dot.ok{background:#2ecc71}
 .conn-dot.err{background:var(--red);animation:connBlink 1s infinite}
 @keyframes connBlink{50%{opacity:.3}}
+.accordion-sec{margin-bottom:8px}
+.accordion-hdr{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:all .15s;user-select:none}
+.accordion-hdr:hover{border-color:var(--gold)}.accordion-hdr.open{border-color:var(--gold);background:rgba(197,165,90,.08);border-radius:10px 10px 0 0}
+.accordion-hdr h3{font-size:.92rem;color:var(--gold);margin:0}.accordion-chv{color:var(--muted);transition:transform .25s;font-size:.8rem}
+.accordion-hdr.open .accordion-chv{transform:rotate(180deg)}
+.accordion-bdy{display:none;background:var(--card);border:1px solid var(--border);border-top:none;border-radius:0 0 10px 10px;padding:16px;margin-bottom:8px}
+.accordion-hdr.open+.accordion-bdy{display:block}
+.accordion-locked{opacity:.45;pointer-events:none}.accordion-locked h3::after{content:" \1f512";font-size:.7rem}
+.wizard-tabs{display:flex;gap:4px;margin-bottom:16px}
+.wizard-tab{flex:1;padding:10px 8px;text-align:center;background:var(--card);border:1px solid var(--border);border-radius:8px;cursor:pointer;font-size:.78rem;font-weight:600;color:var(--muted);transition:all .15s}
+.wizard-tab.active{background:rgba(197,165,90,.12);color:var(--gold);border-color:var(--gold)}
+.wizard-tab.done{color:var(--teal);border-color:rgba(46,139,139,.4)}.wizard-tab.done::before{content:"\2713 "}
+.wizard-pane{display:none}.wizard-pane.active{display:block}
+.search-input{background:var(--card);border:2px solid var(--border);border-radius:10px;padding:10px 14px;font-size:.9rem;color:var(--text);width:100%;outline:none;margin-bottom:12px}
+.search-input:focus{border-color:var(--gold)}.search-input::placeholder{color:var(--muted)}
+.leader-photo{text-align:center;margin:0 0 16px}
+.leader-avatar{width:100px;height:100px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:900;color:#fff;margin-bottom:8px;border:3px solid var(--gold)}
+.leader-avatar img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.leader-caption{font-size:.9rem;color:var(--gold);font-weight:700;line-height:1.4}
+.leader-caption span{color:var(--muted);font-weight:400;font-size:.75rem;display:block}
+.leader-mini{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.leader-mini-av{width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.9rem;font-weight:800;color:#fff;flex-shrink:0;border:2px solid var(--gold)}
+.leader-mini-av img{width:100%;height:100%;border-radius:50%;object-fit:cover}
+.profile-grid{display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:16px;align-items:start}
+@media(max-width:700px){.profile-grid{grid-template-columns:1fr;gap:12px}}
+.profile-col h4{font-size:.8rem;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.profile-rank-item{display:flex;align-items:center;gap:6px;padding:4px 0;font-size:.82rem}
+.profile-rank-num{color:var(--gold);font-weight:800;width:18px;font-size:.85rem}
+.profile-rank-label{color:var(--text)}.profile-rank-sub{font-size:.68rem;color:var(--muted);margin-left:4px}
+@media(min-width:601px){.student-mobile-nav,.mobile-menu{display:none!important}.student-desktop-nav{display:flex!important}}
+@media(max-width:600px){.student-desktop-nav{display:none!important}.student-mobile-nav{display:flex!important}}
 </style>
 </head>
 <body>
@@ -246,7 +277,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 </div>
 <!-- Student -->
 <div id="studentNameScreen" class="student-screen hidden"><div style="flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center"><h2 style="font-size:1.4rem;color:var(--gold);margin-bottom:6px">Witaj! 👋</h2><p style="font-size:.85rem;color:var(--muted);margin-bottom:24px">Podaj swoje imię</p><input type="text" id="studentName" class="name-input" placeholder="Twoje imię" maxlength="20"><div class="validation-msg" id="nameError"></div><button class="big-btn" onclick="APP.startStudentFlow()" style="margin-top:12px;width:100%;max-width:320px">Dalej →</button></div></div>
-<div id="selectScreen" class="student-screen hidden"><div class="student-header"><h1>Wybierz swoje wartości</h1><div class="step-info">Krok 1 z 2</div></div><div class="student-progress"><div class="student-progress-fill" id="selectProgress"></div></div><div class="selection-instruction"><h2>Wybierz <strong id="maxSelectLabel">10</strong> wartości</h2><p>które są dla Ciebie najważniejsze jako lidera/liderki</p></div><div class="selection-counter">Wybrano: <span id="selectCount">0</span> / <span id="maxSelectCount">10</span></div><div class="values-grid" id="valuesGrid"></div><div class="bottom-bar"><button class="big-btn" id="selectNextBtn" disabled onclick="APP.goToRanking()">Dalej → Uszereguj</button></div></div>
+<div id="selectScreen" class="student-screen hidden"><div class="student-header"><h1>Wybierz swoje wartości</h1><div class="step-info">Krok 1 z 2</div></div><div class="student-progress"><div class="student-progress-fill" id="selectProgress"></div></div><div class="selection-instruction"><h2>Wybierz <strong id="maxSelectLabel">10</strong> wartości</h2><p>które są dla Ciebie najważniejsze jako lidera/liderki</p></div><div class="selection-counter">Wybrano: <span id="selectCount">0</span> / <span id="maxSelectCount">10</span></div><input type="text" class="search-input" id="valueSearch" placeholder="Szukaj warto\u015bci..." oninput="APP.filterValues(this.value)"><div class="values-grid" id="valuesGrid"></div><div class="bottom-bar"><button class="big-btn" id="selectNextBtn" disabled onclick="APP.goToRanking()">Dalej → Uszereguj</button></div></div>
 <div id="rankScreen" class="student-screen hidden"><div class="student-header"><h1>Uszereguj wartości</h1><div class="step-info">Przeciągaj w górę/dół</div></div><div class="rank-instruction"><h2>Najważniejsza na górze, najmniej ważna na dole</h2><p>Możesz zmieniać kolejność w każdej chwili</p></div><div class="rank-status" id="rankStatus"></div><div class="rank-list" id="rankList"></div></div>
 <div id="teamScreen" class="student-screen hidden"><div class="team-choose" id="teamChoosePanel"></div></div>
 <div id="studentTeamView" class="student-screen hidden"><div class="student-desktop-nav" id="stDesktopNav"></div><div class="student-mobile-nav"><h2 id="stTeamName"></h2><button class="hamburger" onclick="document.getElementById('stMobileMenu').classList.toggle('open')">☰</button></div><div class="mobile-menu" id="stMobileMenu"></div><div id="stTeamContent"></div></div>
@@ -274,10 +305,10 @@ var SC=["#E74C3C","#E67E22","#F39C12","#2ECC71","#1ABC9C","#3498DB","#9B59B6","#
 var VDESC={1:"Wolność myśli i działania, możliwość samodzielnego decydowania",2:"Zainteresowanie wszystkim, odkrywanie, eksploracja",3:"Oryginalność, wyobraźnia, tworzenie nowych rzeczy",4:"Samodzielność, samowystarczalność, poleganie na sobie",5:"Swoboda w wyznaczaniu własnych celów życiowych",6:"Prawo do prywatnej sfery, do bycia samemu",7:"Wiara we własną wartość jako osoby",8:"Poszukiwanie przygód, ryzyko, odwaga działania",9:"Życie pełne wyzwań, nowości i zmian",10:"Życie pełne ekscytujących doświadczeń i emocji",11:"Czerpanie radości i satysfakcji z życia",12:"Pozwalanie sobie na przyjemności, robienie tego co sprawia radość",13:"Zaspokajanie pragnień i potrzeb",14:"Logiczne myślenie, zdolność analizy i wnioskowania",15:"Skuteczność w działaniu, zdolność realizacji celów",16:"Osiąganie celów, spełnianie ambicji",17:"Silne dążenie do sukcesu, pracowitość, determinacja",18:"Zdolność wpływania na ludzi i bieg wydarzeń",19:"Uznanie i szacunek ze strony innych za osiągnięcia",20:"Dobra materialne, zasoby finansowe, dostatek",21:"Prawo do przewodzenia, wydawania poleceń, bycia liderem",22:"Dbanie o to jak jest się postrzeganym przez innych",23:"Możliwość kontrolowania tego co robią inni ludzie",24:"Dobre zdrowie fizyczne i psychiczne",25:"Zapewnienie bezpieczeństwa i opieki najbliższym",26:"Stabilność i porządek w społeczeństwie",27:"Schludność, porządek w otoczeniu i w życiu",28:"Poczucie że się gdzieś przynależy, jest się częścią grupy",29:"Unikanie bycia dłużnym, odwzajemnianie gestów",30:"Ochrona kraju przed zagrożeniami",31:"Rzetelność, solidność w wypełnianiu obowiązków",32:"Wierność przyjaciołom i grupie, dotrzymywanie słowa",33:"Samokontrola, opieranie się pokusom, konsekwencja",34:"Uprzejmość i dobre maniery w kontaktach z ludźmi",35:"Okazywanie szacunku starszym, szanowanie ich mądrości",36:"Wypełnianie poleceń, podporządkowanie się regułom",37:"Skromność, brak potrzeby wywyższania się",38:"Dystans wobec spraw światowych, rezerwa",39:"Pielęgnowanie zwyczajów i praktyk kulturowych",40:"Głęboka wiara i oddanie sprawom duchowym",41:"Unikanie skrajności, poszukiwanie złotego środka",42:"Pogodzenie się z tym co przynosi życie",43:"Niesienie pomocy innym, wspieranie potrzebujących",44:"Gotowość do wybaczania, brak mściwości",45:"Prawdomówność, szczerość, transparentność",46:"Głębokie, bliskie relacje oparte na zaufaniu",47:"Poczucie celu i sensu w tym co się robi",48:"Głęboka bliskość emocjonalna i duchowa z partnerem",49:"Wewnętrzna harmonia duchowa, refleksja, medytacja",50:"Tolerancja dla odmiennych poglądów i ludzi",51:"Równe szanse i prawa dla wszystkich ludzi",52:"Poczucie jedności ze światem przyrody",53:"Dbanie o środowisko naturalne i ekologię",54:"Pokój wewnętrzny, pogodzenie się z samym sobą",55:"Docenianie piękna w naturze, sztuce i życiu",56:"Walka o sprawiedliwe traktowanie wszystkich",57:"Świat wolny od wojen i konfliktów",58:"Dojrzałe rozumienie życia, głęboka refleksja"};
 var CDESC={"self-direction":"Niezależne myślenie i działanie — wybieranie, tworzenie, odkrywanie. Wywodzi się z potrzeby kontroli i autonomii.","stimulation":"Ekscytacja, nowość i wyzwania w życiu. Wywodzi się z potrzeby różnorodności i stymulacji dla optymalnego funkcjonowania.","hedonism":"Przyjemność i zmysłowe zaspokojenie dla samego siebie. Wywodzi się z potrzeby odczuwania radości.","achievement":"Osobisty sukces poprzez wykazanie kompetencji zgodnie ze standardami społecznymi. Dążenie do bycia lepszym.","power":"Status społeczny i prestiż, kontrola lub dominacja nad ludźmi i zasobami.","security":"Bezpieczeństwo, harmonia i stabilność społeczeństwa, relacji i samego siebie.","conformity":"Powstrzymywanie działań, skłonności i impulsów, które mogą szkodzić innym lub naruszać oczekiwania społeczne.","tradition":"Szacunek, zaangażowanie i akceptacja zwyczajów i idei, które tradycyjna kultura lub religia narzuca jednostce.","benevolence":"Ochrona i pomnażanie dobra ludzi, z którymi jest się w częstym kontakcie osobistym (rodzina, przyjaciele).","universalism":"Zrozumienie, tolerancja i ochrona dobra wszystkich ludzi i natury. Wykracza poza bliski krąg."};
 var TEAMS=[
-  {id:"morgan",name:"J.P. Morgan",desc:"Bankier, budowniczy imperium finansowego \u2014 decyzyjność, władza, wizja strategiczna",bio:"<h3>John Pierpont Morgan (1837\u20131913)</h3><p>Amerykański finansista i bankier, jeden z najpotężniejszych ludzi w historii biznesu. Stworzył imperium bankowe J.P. Morgan & Co., które ukształtowało nowoczesny system finansowy USA.</p><p>Morgan był znany z niezwykłej zdolności podejmowania szybkich, odważnych decyzji. W 1907 roku niemal samodzielnie powstrzymał panikę bankową, organizując ratunkowe spotkania na Wall Street. Jego styl przywództwa opierał się na autorytecie osobistym, wizji strategicznej i absolutnej pewności siebie.</p><h3>Kluczowe cechy przywódcze</h3><p>\u2022 Decyzyjność pod presją<br>\u2022 Władza oparta na kompetencji i reputacji<br>\u2022 Wizja długoterminowa<br>\u2022 Odwaga w podejmowaniu ryzyka<br>\u2022 Zdolność jednoczenia ludzi wokół celu</p>"},
-  {id:"mandela",name:"Nelson Mandela",desc:"Przywódca polityczny \u2014 przebaczenie, sprawiedliwość, pokora i transformacja społeczna",bio:"<h3>Nelson Rolihlahla Mandela (1918\u20132013)</h3><p>Południowoafrykański przywódca antiapartheidu, więzień polityczny przez 27 lat, a następnie pierwszy czarnoskóry prezydent RPA (1994\u20131999).</p><p>Mandela jest symbolem przebaczenia i pojednania. Po wyjściu z więzienia zamiast zemsty wybrał dialog i współpracę z byłymi oprawcami. Jego przywództwo transformacyjne zjednoczyło podzielony naród i pokazało, że siła moralna przewyższa siłę fizyczną.</p><h3>Kluczowe cechy przywódcze</h3><p>\u2022 Pokora i empatia<br>\u2022 Przebaczenie jako narzędzie zmiany<br>\u2022 Sprawiedliwość społeczna<br>\u2022 Cierpliwość strategiczna<br>\u2022 Wizja ponad podziałami</p>"},
-  {id:"winfrey",name:"Oprah Winfrey",desc:"Ikona mediów i filantropii \u2014 autentyczność, empatia, inspirowanie milionów",bio:"<h3>Oprah Gail Winfrey (ur. 1954)</h3><p>Amerykańska prezenterka, producentka, filantropka i jedna z najbardziej wpływowych kobiet na świecie. Z trudnego dzieciństwa w ubóstwie zbudowała medialne imperium warte miliardy dolarów.</p><p>Styl przywództwa Oprah opiera się na autentyczności, empatii i zdolności do tworzenia głębokich więzi z ludźmi. Jej talk-show stał się platformą do zmiany społecznej, edukacji i inspiracji. Winfrey udowodniła, że przywództwo może być oparte na wrażliwości i otwartości.</p><h3>Kluczowe cechy przywódcze</h3><p>\u2022 Autentyczność i otwartość<br>\u2022 Empatia i słuchanie<br>\u2022 Odwaga dzielenia się swoją historią<br>\u2022 Inspirowanie przez przykład<br>\u2022 Filantropia i służba społeczna</p>"},
-  {id:"hansen",name:"Pia Hansen (fikt.)",desc:"Kapitan żeńskiej drużyny piłki ręcznej \u2014 dyscyplina, lojalność, praca zespołowa, sportowy duch",bio:"<h3>Pia Hansen \u2014 postać fikcyjna</h3><p>Fikcyjna kapitan duńskiej drużyny piłki ręcznej, stworzona na potrzeby ćwiczenia jako archetyp lidera sportowego. Pia łączy cechy wielu wielkich kapitanów drużynowych.</p><p>Jako kapitan, Pia musi codziennie balansować między wymaganiami trenera, potrzebami zespołu i własnymi ambicjami. Jej styl przywództwa opiera się na dawaniu przykładu na boisku, budowaniu zaufania w szatni i twardej samodyscyplinie. Wie, że drużyna jest silna jak jej najsłabsze ogniwo.</p><h3>Kluczowe cechy przywódcze</h3><p>\u2022 Lojalność wobec zespołu<br>\u2022 Samodyscyplina i pracowitość<br>\u2022 Odpowiedzialność za wynik grupowy<br>\u2022 Motywowanie przez przykład<br>\u2022 Odporność na presję</p>"}
+  {id:"morgan",name:"J.P. Morgan",initials:"JPM",color:"#D35400",desc:"Bankier, budowniczy imperium finansowego \u2014 decyzyjno\u015b\u0107, w\u0142adza, wizja strategiczna",bio:'<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,#D35400,#E67E22)">JPM</div><div class="leader-caption">John Pierpont Morgan<span>1837\u20131913 \u2022 USA</span></div></div><h3>Kim by\u0142 J.P. Morgan?</h3><p>Ameryka\u0144ski finansista i bankier \u2014 jeden z najpot\u0119\u017cniejszych ludzi w historii biznesu. Stworzy\u0142 imperium J.P. Morgan & Co., kt\u00f3re ukszta\u0142towa\u0142o nowoczesny system finansowy USA. W czasach gdy nie istnia\u0142 bank centralny, Morgan pe\u0142ni\u0142 de facto t\u0119 rol\u0119 jednoosobowo.</p><h3>Droga do przyw\u00f3dztwa</h3><p>Syn bankiera Juniusa Spencera Morgana, ucz\u0105cy si\u0119 finans\u00f3w od dzieci\u0144stwa. Po studiach w Getyndze rozpocz\u0105\u0142 karier\u0119 na Wall Street. Szybko wyr\u00f3\u017cni\u0142 si\u0119 umiej\u0119tno\u015bci\u0105 \u0142\u0105czenia sprzecznych interes\u00f3w \u2014 organizowa\u0142 fuzje tworz\u0105ce gigant\u00f3w przemys\u0142u, w tym U.S. Steel \u2014 pierwsz\u0105 korporacj\u0119 o warto\u015bci miliarda dolar\u00f3w.</p><h3>Case study: Panika 1907</h3><p>W pa\u017adzierniku 1907 roku system finansowy USA stan\u0105\u0142 na kraw\u0119dzi za\u0142amania. Banki pada\u0142y jeden po drugim, gie\u0142da traci\u0142a 50% warto\u015bci. Nie by\u0142o banku centralnego.</p><p>J.P. Morgan, maj\u0105c 70 lat, zamkn\u0105\u0142 najwa\u017cniejszych bankier\u00f3w w swojej bibliotece na Manhattanie i nie wypu\u015bci\u0142 ich, dop\u00f3ki nie uzgodnili planu ratunkowego. Wymusi\u0142 wsp\u00f3\u0142prac\u0119, zorganizowa\u0142 po\u017cyczki mi\u0119dzy bankami, a gdy to nie wystarczy\u0142o \u2014 wy\u0142o\u017cy\u0142 w\u0142asne pieni\u0105dze. W ci\u0105gu dw\u00f3ch tygodni opanowa\u0142 kryzys.</p><h3>Styl przyw\u00f3dztwa</h3><ul><li><strong>Decyzyjno\u015b\u0107</strong> \u2014 b\u0142yskawiczne decyzje pod presj\u0105</li><li><strong>Autorytet osobisty</strong> \u2014 jego s\u0142owo by\u0142o silniejsze ni\u017c kontrakty</li><li><strong>Wizja strategiczna</strong> \u2014 widzia\u0142 du\u017cy obraz, gdy inni widzieli chaos</li><li><strong>Odwaga</strong> \u2014 ryzykowa\u0142 w\u0142asnym maj\u0105tkiem dla stabilno\u015bci systemu</li><li><strong>Kontrola</strong> \u2014 wymaga\u0142 lojalno\u015bci i pos\u0142usze\u0144stwa</li></ul>'},
+  {id:"ardern",name:"Jacinda Ardern",initials:"JA",color:"#9B59B6",desc:"Premier Nowej Zelandii \u2014 empatia, autentyczno\u015b\u0107, przyw\u00f3dztwo w kryzysie",bio:'<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,#9B59B6,#8E44AD)">JA</div><div class="leader-caption">Jacinda Ardern<span>ur. 1980 \u2022 Nowa Zelandia</span></div></div><h3>Kim jest Jacinda Ardern?</h3><p>Premier Nowej Zelandii w latach 2017\u20132023. Obj\u0119\u0142a urz\u0105d w wieku 37 lat jako najm\u0142odsza szefowa rz\u0105du na \u015bwiecie. Sta\u0142a si\u0119 globaln\u0105 ikon\u0105 empatycznego przyw\u00f3dztwa \u2014 przyw\u00f3dztwa opartego na wsp\u00f3\u0142czuciu, autentyczno\u015bci i odwadze bycia sob\u0105.</p><h3>Droga do przyw\u00f3dztwa</h3><p>Dzia\u0142aczka Partii Pracy od m\u0142odo\u015bci, wcze\u015bniej doradczyni Tony\'ego Blaira. Zosta\u0142a liderka partii zaledwie 7 tygodni przed wyborami \u2014 i wygra\u0142a. Jako premier urodzi\u0142a dziecko, \u0142ami\u0105c stereotypy o kobietach w polityce.</p><h3>Case study: Zamachy w Christchurch (2019)</h3><p>15 marca 2019 roku terrorysta zamordowa\u0142 51 os\u00f3b w dwu meczetach. Reakcja Ardern sta\u0142a si\u0119 wzorem kryzysowego przyw\u00f3dztwa:</p><ul><li>W ci\u0105gu godzin za\u0142o\u017cy\u0142a hid\u017cab i przytula\u0142a rodziny ofiar</li><li>Powiedzia\u0142a: \u201eOni s\u0105 nami\u201d (They are us) \u2014 redefiniuj\u0105c to\u017csamo\u015b\u0107 narodow\u0105</li><li>W 6 dni przeprowadzi\u0142a reform\u0119 prawa o broni palnej</li><li>Konsekwentnie odmawia\u0142a u\u017cywania imienia zamachowca</li></ul><h3>Case study: Rezygnacja (2023)</h3><p>W styczniu 2023 roku Ardern og\u0142osi\u0142a rezygnacj\u0119 s\u0142owami: \u201eNie mam ju\u017c wystarczaj\u0105co du\u017co energii w zbiorniku\u201d. Ta decyzja sta\u0142a si\u0119 wyk\u0142adem o autentyczno\u015bci i zr\u00f3wnowa\u017conym przyw\u00f3dztwie \u2014 lider ma prawo powiedzie\u0107 \u201edo\u015b\u0107\u201d.</p><h3>Styl przyw\u00f3dztwa</h3><ul><li><strong>Empatia</strong> \u2014 autentyczne wsp\u00f3\u0142czucie jako si\u0142a, nie s\u0142abo\u015b\u0107</li><li><strong>Autentyczno\u015b\u0107</strong> \u2014 sp\u00f3jno\u015b\u0107 mi\u0119dzy warto\u015bciami a dzia\u0142aniem</li><li><strong>Odwaga moralna</strong> \u2014 szybkie, zdecydowane dzia\u0142anie w kryzysie</li><li><strong>Inkluzywno\u015b\u0107</strong> \u2014 budowanie wsp\u00f3lnoty ponad podzia\u0142ami</li><li><strong>Pokora</strong> \u2014 uznanie w\u0142asnych ogranicze\u0144</li></ul>'},
+  {id:"swiatek",name:"Iga \u015awi\u0105tek",initials:"I\u015a",color:"#E74C3C",desc:"Polska tenisistka nr 1 \u2014 dyscyplina, si\u0142a mentalna, determinacja",bio:'<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,#E74C3C,#C0392B)">I\u015a</div><div class="leader-caption">Iga \u015awi\u0105tek<span>ur. 2001 \u2022 Polska</span></div></div><h3>Kim jest Iga \u015awi\u0105tek?</h3><p>Polska tenisistka, wielokrotna zwyci\u0119\u017czyni turniej\u00f3w wielkoszlemowych, by\u0142a numer 1 rankingu WTA. Pierwsza Polka, kt\u00f3ra wygra\u0142a Wielkiego Szlema (Roland Garros 2020). Symbol dyscypliny, si\u0142y mentalnej i systematycznej pracy nad sob\u0105.</p><h3>Droga do przyw\u00f3dztwa</h3><p>C\u00f3rka olimpijczyka wio\u015blarza Tomasza \u015awi\u0105tka. Zacz\u0119\u0142a gra\u0107 w tenisa w wieku 5 lat. Prze\u0142omowy moment: zwyci\u0119stwo w Roland Garros 2020 jako 19-latka, bez straty seta \u2014 co uznano za jeden z najbardziej dominuj\u0105cych debiut\u00f3w w historii.</p><h3>Case study: Praca z psychologiem sportowym</h3><p>\u015awi\u0105tek od lat wsp\u00f3\u0142pracuje z psycholo\u017ck\u0105 sportow\u0105 Dari\u0105 Abramowicz, kt\u00f3ra jest sta\u0142ym cz\u0142onkiem jej zespo\u0142u. To wyj\u0105tkowe w \u015bwiecie tenisa, gdzie temat zdrowia psychicznego by\u0142 d\u0142ugo tabu.</p><ul><li>Medytacja i mindfulness jako sta\u0142y element przygotowa\u0144</li><li>Techniki regulacji emocji mi\u0119dzy gemami</li><li>\u201eTrakuj\u0119 tenis jako spos\u00f3b testowania swoich mentalnych granic\u201d</li><li>Otwarta rozmowa o presji i stresie \u2014 inspiracja dla m\u0142odych sportowc\u00f3w</li></ul><h3>Case study: Seria 37 zwyci\u0119stw (2022)</h3><p>Mi\u0119dzy lutym a lipcem 2022 roku \u015awi\u0105tek wygra\u0142a 37 mecz\u00f3w z rz\u0119du \u2014 najd\u0142u\u017csza seria w tym stuleciu. Kluczem by\u0142a nie tylko technika, ale siedzenie w \u201eflow state\u201d \u2014 stanie optymalnego skupienia, nad kt\u00f3rym pracowa\u0142a z Abramowicz.</p><h3>Styl przyw\u00f3dztwa</h3><ul><li><strong>Dyscyplina</strong> \u2014 rygorystyczny plan treningowy i mental routine</li><li><strong>Si\u0142a mentalna</strong> \u2014 przezwyci\u0119\u017canie presji na najwy\u017cszym poziomie</li><li><strong>Pokora</strong> \u2014 mimo sukces\u00f3w, otwarto\u015b\u0107 na krytyk\u0119 i rozw\u00f3j</li><li><strong>Autentyczno\u015b\u0107</strong> \u2014 nie ukrywa emocji, m\u00f3wi o trudno\u015bciach</li><li><strong>Przyw\u00f3dztwo przez przyk\u0142ad</strong> \u2014 normalizacja pracy z psychologiem</li></ul>'},
+  {id:"obama",name:"Barack Obama",initials:"BO",color:"#2980B9",desc:"44. prezydent USA \u2014 charyzma, wizja zmiany, inspirowanie milion\u00f3w",bio:'<div class="leader-photo"><div class="leader-avatar" style="background:linear-gradient(135deg,#2980B9,#2C3E50)">BO</div><div class="leader-caption">Barack Obama<span>ur. 1961 \u2022 USA</span></div></div><h3>Kim jest Barack Obama?</h3><p>44. prezydent Stan\u00f3w Zjednoczonych (2009\u20132017), pierwszy czarnosk\u00f3ry prezydent w historii USA. Community organizer, prawnik, senator \u2014 przeszed\u0142 drog\u0119 od pracy spo\u0142ecznej w Chicago do najwy\u017cszego urz\u0119du. Laureat Pokojowej Nagrody Nobla (2009).</p><h3>Droga do przyw\u00f3dztwa</h3><p>Wychowany przez samotn\u0105 matk\u0119 i dziadk\u00f3w na Hawajach. Jako community organizer w po\u0142udniowym Chicago organizowa\u0142 lokalne spo\u0142eczno\u015bci \u2014 uczy\u0142 si\u0119, \u017ce prawdziwa zmiana zaczyna si\u0119 od s\u0142uchania ludzi. Te do\u015bwiadczenia ukszta\u0142towa\u0142y jego styl przyw\u00f3dztwa: inkluzywny, oparty na dialogu i nadziei.</p><h3>Case study: Kampania \u201eYes We Can\u201d (2008)</h3><p>Kampania prezydencka Obamy zmieni\u0142a regu\u0142y gry politycznej:</p><ul><li>Zbudowa\u0142 ruch oddolny (grassroots) \u2014 miliony wolontariuszy, rekordowe ma\u0142e wp\u0142aty</li><li>Has\u0142o \u201eYes We Can\u201d sta\u0142o si\u0119 globalnym symbolem nadziei i zmiany</li><li>Mistrzowskie wykorzystanie social medi\u00f3w (pierwsza cyfrowa kampania)</li><li>Przekaz: \u201eNie chodzi o mnie \u2014 chodzi o Was\u201d \u2014 w\u0142adza nale\u017cy do ludzi</li></ul><h3>Case study: Reforma zdrowotna (ACA)</h3><p>Affordable Care Act \u2014 reforma zapewniaj\u0105ca ubezpieczenie zdrowotne milionom Amerykan\u00f3w \u2014 by\u0142a przyk\u0142adem przyw\u00f3dztwa d\u0142ugoterminowego. Obama forsowa\u0142 j\u0105 przez lata mimo oporu politycznego, atak\u00f3w medialnych i spadaj\u0105cych sonda\u017cy. Pokaza\u0142, \u017ce lider czasem musi po\u015bwi\u0119ci\u0107 popularno\u015b\u0107 dla wizji.</p><h3>Styl przyw\u00f3dztwa</h3><ul><li><strong>Wizja</strong> \u2014 zdolno\u015b\u0107 malowania obrazu lepszej przysz\u0142o\u015bci</li><li><strong>Komunikacja</strong> \u2014 jeden z najlepszych m\u00f3wc\u00f3w naszych czas\u00f3w</li><li><strong>Empatia</strong> \u2014 autentyczne s\u0142uchanie i rozumienie r\u00f3\u017cnych perspektyw</li><li><strong>Wytrwa\u0142o\u015b\u0107</strong> \u2014 determinacja mimo oporu i krytyki</li><li><strong>Budowanie most\u00f3w</strong> \u2014 szukanie porozumienia ponad podzia\u0142ami</li></ul>'}
 ];
 var SK='values_explorer_student';
 var S={mode:null,roomCode:'',peer:null,connections:[],conn:null,studentData:{},currentLimit:10,snapshots:{},teamsEnabled:false,maxMembers:5,studentName:'',selected:[],ranked:[],maxSelect:10,myTeam:null,dashLimit:5,dashDims:['openness','enhancement','conservation','transcendence']};
@@ -297,7 +328,7 @@ function getCounts(lim,filterPids){
   var cc={};for(var ck in CATS){var cv=VALUES.filter(function(v){return v.cat===ck;});var c=0;for(var j=0;j<cv.length;j++)c+=(vc[cv[j].id]||0);cc[ck]=c;}cc._vc=vc;return cc;
 }
 function getTeamPids(tid){var r=[];for(var p in S.studentData)if(S.studentData[p].team===tid)r.push(p);return r;}
-function saveS(){if(S.mode!=='student')return;try{localStorage.setItem(SK,JSON.stringify({room:S.roomCode,name:S.studentName,selected:S.selected,ranked:S.ranked,maxSelect:S.maxSelect,currentLimit:S.currentLimit,team:S.myTeam,screen:curScreen()}));}catch(e){}}
+function saveS(){if(S.mode!=='student')return;try{localStorage.setItem(SK,JSON.stringify({room:S.roomCode,name:S.studentName,selected:S.selected,ranked:S.ranked,maxSelect:S.maxSelect,currentLimit:S.currentLimit,team:S.myTeam,leaderEx:S.leaderEx||null,screen:curScreen()}));}catch(e){}}
 function curScreen(){if(!document.getElementById('studentTeamView').classList.contains('hidden'))return'teamView';if(!document.getElementById('teamScreen').classList.contains('hidden'))return'teamChoose';if(!document.getElementById('resultScreen').classList.contains('hidden'))return'result';if(!document.getElementById('rankScreen').classList.contains('hidden'))return'rank';if(!document.getElementById('selectScreen').classList.contains('hidden'))return'select';return'name';}
 function loadS(){try{return JSON.parse(localStorage.getItem(SK));}catch(e){return null;}}
 
@@ -406,22 +437,20 @@ function refreshTeams(){
 function showAdminTeamDetail(tid){
   var team=TEAMS.find(function(t){return t.id===tid;});if(!team)return;
   var sec=document.getElementById('adminTeamDetail');sec.innerHTML='';sec.classList.add('active');
-  // Hide other sections
   var secs=document.querySelectorAll('.admin-section');for(var i=0;i<secs.length;i++)if(secs[i].id!=='adminTeamDetail')secs[i].classList.remove('active');
   var tabs=document.querySelectorAll('.admin-tab');for(var j=0;j<tabs.length;j++)tabs[j].classList.remove('active');
-  // Back button
-  var back=document.createElement('button');back.className='secondary-btn';back.textContent='\u2190 Powrót do Zespołów';
+  var back=document.createElement('button');back.className='secondary-btn';back.textContent='\u2190 Powr\u00f3t do Zespo\u0142\u00f3w';
   back.addEventListener('click',function(){sec.classList.remove('active');document.getElementById('adminTeams').classList.add('active');document.getElementById('teamsTabBtn').classList.add('active');refreshTeams();});
   sec.appendChild(back);
-  // Tabs
   var tabsDiv=document.createElement('div');tabsDiv.className='team-detail-tabs';tabsDiv.style.marginTop='16px';
-  var views=['Osoby','BIO Lidera','Statystyki'];var content=document.createElement('div');
+  var views=['Osoby','BIO Lidera','Warto\u015bci lidera','Statystyki'];var content=document.createElement('div');
   function showView(idx){
     content.innerHTML='';
     for(var k=0;k<tabsDiv.children.length;k++)tabsDiv.children[k].classList.toggle('active',k===idx);
     if(idx===0){var pids=getTeamPids(tid);if(!pids.length){content.innerHTML='<p style="color:var(--muted)">Brak cz\u0142onk\u00f3w</p>';return;}for(var m=0;m<pids.length;m++){var sd=S.studentData[pids[m]];content.innerHTML+='<div style="padding:8px 0;border-bottom:1px solid var(--border)">'+esc(sd.name||'?')+'</div>';}}
     else if(idx===1){content.innerHTML='<div class="bio-text">'+team.bio+'</div>';}
-    else if(idx===2){buildTeamStats(content,tid);}
+    else if(idx===2){buildLeaderValuesExercise(content,team,true);}
+    else if(idx===3){buildTeamStats(content,tid);}
   }
   for(var vi=0;vi<views.length;vi++){(function(i){var btn=document.createElement('button');btn.className='team-detail-tab'+(i===0?' active':'');btn.textContent=views[i];btn.addEventListener('click',function(){showView(i);});tabsDiv.appendChild(btn);})(vi);}
   sec.appendChild(tabsDiv);sec.appendChild(content);showView(0);
@@ -573,7 +602,7 @@ function onDashSlider(v){S.dashLimit=parseInt(v);document.getElementById('dashSl
 
 // STUDENT
 function initStudent(rc){S.mode='student';S.roomCode=rc;var saved=loadS();
-  if(saved&&saved.room===rc&&saved.name&&saved.screen!=='name'){S.studentName=saved.name;S.selected=saved.selected||[];S.ranked=saved.ranked||[];S.maxSelect=saved.maxSelect||10;S.currentLimit=saved.currentLimit||10;S.myTeam=saved.team||null;
+  if(saved&&saved.room===rc&&saved.name&&saved.screen!=='name'){S.studentName=saved.name;S.selected=saved.selected||[];S.ranked=saved.ranked||[];S.maxSelect=saved.maxSelect||10;S.currentLimit=saved.currentLimit||10;S.myTeam=saved.team||null;S.leaderEx=saved.leaderEx||null;
     connectP(function(){
       if(saved.screen==='teamView'&&S.myTeam){showStudentTeamView();}
       else if(saved.screen==='teamChoose'){showTeamChoose();}
@@ -630,14 +659,16 @@ function onPMsg(d){
 }
 function buildSelGrid(){
   var g=document.getElementById('valuesGrid');g.innerHTML='';var sh=shuffle(VALUES);
+  S._allCards=[];
   var ml=document.getElementById('maxSelectLabel');if(ml)ml.textContent=S.maxSelect;
   var mc=document.getElementById('maxSelectCount');if(mc)mc.textContent=S.maxSelect;
   for(var i=0;i<sh.length;i++){var v=sh[i];var c=SC[~~(Math.random()*SC.length)];
-    var card=document.createElement('div');card.className='value-card';card.setAttribute('data-id',v.id);
+    var card=document.createElement('div');card.className='value-card';card.setAttribute('data-id',v.id);card.setAttribute('data-pl',v.pl.toLowerCase());
     card.innerHTML='<div class="value-dot" style="background:'+c+'"></div><div class="value-label">'+v.pl+'</div>';
-    card.addEventListener('click',toggleSel);g.appendChild(card);}
+    card.addEventListener('click',toggleSel);g.appendChild(card);S._allCards.push(card);}
   updateSelCount();
 }
+function filterValues(q){var t=q.toLowerCase().trim();var cards=S._allCards||[];for(var i=0;i<cards.length;i++){var m=!t||cards[i].getAttribute("data-pl").indexOf(t)>=0;cards[i].style.display=m?"":"none";}}
 function restoreSel(){var cards=document.querySelectorAll('#valuesGrid .value-card');for(var i=0;i<cards.length;i++){if(S.selected.indexOf(parseInt(cards[i].getAttribute('data-id')))>=0)cards[i].classList.add('selected');}updateSelCount();}
 function toggleSel(e){var card=e.currentTarget,id=parseInt(card.getAttribute('data-id'));var idx=S.selected.indexOf(id);
   if(idx>=0){S.selected.splice(idx,1);card.classList.remove('selected');}else{if(S.selected.length>=S.maxSelect)return;S.selected.push(id);card.classList.add('selected');}updateSelCount();saveS();}
@@ -692,18 +723,19 @@ function showTeamChoose(){
 function showStudentTeamView(){
   show('studentTeamView');
   var team=TEAMS.find(function(t){return t.id===S.myTeam;});if(!team)return;
-  document.getElementById('stTeamName').textContent='Zesp\u00f3\u0142 - '+team.name;
+  document.getElementById('stTeamName').textContent='Zesp\u00f3\u0142: '+team.name;
   var menu=document.getElementById('stMobileMenu');menu.innerHTML='';
-  var views=['Moje wartości','BIO Lidera','Wartości lidera','Statystyki zespołu'];
+  var views=['Moje warto\u015bci','BIO Lidera','Warto\u015bci lidera','Statystyki'];
   var content=document.getElementById('stTeamContent');
   var desknav=document.getElementById('stDesktopNav');desknav.innerHTML='';
-  var brand=document.createElement('span');brand.className='nav-brand';brand.textContent='Zesp\u00f3\u0142 - '+team.name;desknav.appendChild(brand);
+  var brand=document.createElement('span');brand.className='nav-brand';brand.textContent='Zesp\u00f3\u0142: '+team.name;desknav.appendChild(brand);
   function showView(idx){
     content.innerHTML='';menu.classList.remove('open');
-    for(var k=0;k<menu.children.length;k++)menu.children[k].classList.toggle('active',k===idx);var dbtns=desknav.querySelectorAll('.nav-btn');for(var k2=0;k2<dbtns.length;k2++)dbtns[k2].classList.toggle('active',k2===idx);
+    for(var k=0;k<menu.children.length;k++)menu.children[k].classList.toggle('active',k===idx);
+    var dbtns=desknav.querySelectorAll('.nav-btn');for(var k2=0;k2<dbtns.length;k2++)dbtns[k2].classList.toggle('active',k2===idx);
     if(idx===0){
       var top5=S.ranked.slice(0,5);
-      content.innerHTML='<div class="result-card" style="border:none"><h2>🏆 Twoje 5 kluczowych wartości</h2></div>';
+      content.innerHTML='<div class="result-card" style="border:none"><h2>\ud83c\udfc6 Twoje 5 kluczowych warto\u015bci</h2></div>';
       var card=content.querySelector('.result-card');
       for(var i=0;i<top5.length;i++){var v=valById(top5[i]);if(!v)continue;var cat=CATS[v.cat]||{};
         card.innerHTML+='<div class="result-value" style="animation-delay:'+(i*0.1)+'s"><div class="result-rank">'+(i+1)+'</div><div><div class="result-name">'+v.pl+'</div><div class="result-cat">'+(cat.pl||'')+' \u00b7 '+v.en+'</div></div></div>';}
@@ -712,40 +744,108 @@ function showStudentTeamView(){
     else if(idx===2){buildLeaderValuesExercise(content,team);}
     else if(idx===3){
       var ts=S._teamStats&&S._teamStats[S.myTeam];
-      if(!ts||!ts.total){content.innerHTML='<p style="text-align:center;color:var(--muted);margin-top:24px">Brak danych zespo\u0142u. Poczekaj na aktualizacj\u0119 od prowadz\u0105cego.</p>';return;}
-      buildStudentTeamDash(content,ts,team.name);
+      if(!ts||!ts.total){content.innerHTML='<p style="text-align:center;color:var(--muted);margin-top:24px">Brak danych zespo\u0142u. Poczekaj na aktualizacj\u0119.</p>';return;}
+      buildStudentTeamDash(content,ts,team);
     }
   }
-  for(var vi=0;vi<views.length;vi++){(function(i){var btn=document.createElement('button');btn.className=i===0?'active':'';btn.textContent=views[i];btn.addEventListener('click',function(){showView(i);});menu.appendChild(btn);})(vi);}
+  for(var vi=0;vi<views.length;vi++){(function(i){
+    var btn=document.createElement('button');btn.className=i===0?'active':'';btn.textContent=views[i];btn.addEventListener('click',function(){showView(i);});menu.appendChild(btn);
+    var dbtn=document.createElement('button');dbtn.className='nav-btn'+(i===0?' active':'');dbtn.textContent=views[i];dbtn.addEventListener('click',function(){showView(i);});desknav.appendChild(dbtn);
+  })(vi);}
   showView(0);saveS();
 }
 
 var params=new URLSearchParams(window.location.search);var rp=params.get('room');if(rp)initStudent(rp.toUpperCase());
-function buildStudentTeamDash(container,ts,teamName){
-  container.innerHTML='<div class="page-sub" style="margin-bottom:12px">'+esc(teamName)+' — Top 5 — '+ts.total+' studentów</div>';
-  var grid=document.createElement('div');grid.className='dash-grid';
-  var svgId='stTeamDashSvg',ttId='stTeamDashTT';
-  var c0=document.createElement('div');c0.className='dash-card fullcard ring-small';
-  c0.innerHTML='<h3>Koło Schwartza</h3><div class="heatmap-wrap"><svg id="'+svgId+'" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="'+ttId+'"></div></div>';
-  grid.appendChild(c0);
-  setTimeout(function(){buildRingFromStats(svgId,ts);},50);
-  var vc=ts.vc;var c1=mkCard('Top 10 wartości');
-  var sorted=Object.keys(vc).map(function(k){return{id:parseInt(k),c:vc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
-  var maxV=sorted.length?sorted[0].c:1;
-  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,CATS[sv?sv.cat:'']?CATS[sv.cat].color:'#C5A55A'));}
-  grid.appendChild(c1.el);
-  var c2=mkCard('Ranking kategorii');
-  var catArr=CO.map(function(ck){return{key:ck,c:ts.cc[ck]||0};}).sort(function(a,b){return b.c-a.c;});
-  var maxCat=catArr.length?catArr[0].c:1;
-  for(var j=0;j<catArr.length;j++)c2.cnt.appendChild(mkBar(CATS[catArr[j].key].pl,catArr[j].c,maxCat,CATS[catArr[j].key].color));
-  grid.appendChild(c2.el);
-  var c3=mkCard('Wymiary Schwartza');
-  var dCol={openness:'#E74C3C',enhancement:'#E67E22',conservation:'#2980B9',transcendence:'#9B59B6'};
-  var dimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(ts.cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
-  var maxDim=dimArr.length?dimArr[0].c:1;
-  for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
-  grid.appendChild(c3.el);
-  container.appendChild(grid);
+function buildStudentTeamDash(container,ts,team){
+  container.innerHTML='';
+  var exDone=S.leaderEx&&S.leaderEx.done;
+  // Accordion: Sylwetka lidera
+  var a1h=document.createElement('div');a1h.className='accordion-hdr'+(exDone?'':' accordion-locked');
+  a1h.innerHTML='<h3>Sylwetka lidera: '+esc(team.name)+'</h3><span class="accordion-chv">\u25bc</span>';
+  var a1b=document.createElement('div');a1b.className='accordion-bdy';
+  if(exDone){
+    a1h.addEventListener('click',function(){a1h.classList.toggle('open');});
+    var pg=document.createElement('div');pg.className='profile-grid';
+    // Col 1: avatar
+    var col1=document.createElement('div');col1.className='profile-col';
+    col1.innerHTML='<div class="leader-mini"><div class="leader-mini-av" style="background:linear-gradient(135deg,'+team.color+',#333)">'+team.initials+'</div><div><strong style="color:var(--gold)">'+esc(team.name)+'</strong></div></div>';
+    pg.appendChild(col1);
+    // Col 2: mini ring (skip for now, show vals)
+    var col2=document.createElement('div');col2.className='profile-col';col2.innerHTML='<h4>Top 5 warto\u015bci</h4>';
+    for(var vi=0;vi<S.leaderEx.vals.length;vi++){var v=valById(S.leaderEx.vals[vi]);col2.innerHTML+='<div class="profile-rank-item"><span class="profile-rank-num">'+(vi+1)+'</span><span class="profile-rank-label">'+(v?v.pl:'?')+'</span></div>';}
+    pg.appendChild(col2);
+    // Col 3: ranked dims
+    var col3=document.createElement('div');col3.className='profile-col';col3.innerHTML='<h4>Wymiary</h4>';
+    for(var di=0;di<S.leaderEx.dims.length;di++)col3.innerHTML+='<div class="profile-rank-item"><span class="profile-rank-num">'+(di+1)+'</span><span class="profile-rank-label">'+DIMS[S.leaderEx.dims[di]].pl+'</span></div>';
+    pg.appendChild(col3);
+    // Col 4: ranked cats (top 5)
+    var col4=document.createElement('div');col4.className='profile-col';col4.innerHTML='<h4>Top 5 kategorii</h4>';
+    for(var ci=0;ci<Math.min(5,S.leaderEx.cats.length);ci++){var ck=S.leaderEx.cats[ci];col4.innerHTML+='<div class="profile-rank-item"><span class="profile-rank-num">'+(ci+1)+'</span><span class="profile-rank-label">'+CATS[ck].pl+'</span></div>';}
+    pg.appendChild(col4);
+    a1b.appendChild(pg);
+  }
+  container.appendChild(a1h);container.appendChild(a1b);
+  // Accordion: Zesp\u00f3\u0142
+  var a2h=document.createElement('div');a2h.className='accordion-hdr open';
+  a2h.innerHTML='<h3>Zesp\u00f3\u0142</h3><span class="accordion-chv">\u25bc</span>';
+  a2h.addEventListener('click',function(){a2h.classList.toggle('open');});
+  var a2b=document.createElement('div');a2b.className='accordion-bdy';
+  if(ts&&ts.total){
+    a2b.innerHTML='<div class="page-sub" style="margin-bottom:12px">Top 5 \u2014 '+ts.total+' student\u00f3w</div>';
+    var grid2=document.createElement('div');grid2.className='dash-grid';
+    var svgId2='stTeamSvg',ttId2='stTeamTT';
+    var c0=document.createElement('div');c0.className='dash-card fullcard ring-small';
+    c0.innerHTML='<h3>Ko\u0142o Schwartza</h3><div class="heatmap-wrap"><svg id="'+svgId2+'" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="'+ttId2+'"></div></div>';
+    grid2.appendChild(c0);setTimeout(function(){buildRingFromStats(svgId2,ts);},50);
+    var vc=ts.vc;
+    var c1=mkCard('Top 10 warto\u015bci');var sorted=Object.keys(vc).map(function(k){return{id:parseInt(k),c:vc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+    var maxV=sorted.length?sorted[0].c:1;
+    for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,CATS[sv?sv.cat:'']?CATS[sv.cat].color:'#C5A55A'));}
+    grid2.appendChild(c1.el);
+    var c2=mkCard('Ranking kategorii');var catArr=CO.map(function(ck2){return{key:ck2,c:ts.cc[ck2]||0};}).sort(function(a,b){return b.c-a.c;});
+    var maxCat=catArr.length?catArr[0].c:1;
+    for(var ji=0;ji<catArr.length;ji++)c2.cnt.appendChild(mkBar(CATS[catArr[ji].key].pl,catArr[ji].c,maxCat,CATS[catArr[ji].key].color));
+    grid2.appendChild(c2.el);
+    var c3=mkCard('Wymiary Schwartza');var dCol={openness:'#E74C3C',enhancement:'#E67E22',conservation:'#2980B9',transcendence:'#9B59B6'};
+    var dimArr=['openness','enhancement','conservation','transcendence'].map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck3){s+=(ts.cc[ck3]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
+    var maxDim=dimArr.length?dimArr[0].c:1;
+    for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
+    grid2.appendChild(c3.el);a2b.appendChild(grid2);
+  } else {a2b.innerHTML='<p style="color:var(--muted)">Brak danych zespo\u0142u.</p>';}
+  container.appendChild(a2h);container.appendChild(a2b);
+  // Accordion: Wsp\u00f3lnie
+  var a3h=document.createElement('div');a3h.className='accordion-hdr'+(exDone?'':' accordion-locked');
+  a3h.innerHTML='<h3>Wsp\u00f3lnie (zesp\u00f3\u0142 + lider)</h3><span class="accordion-chv">\u25bc</span>';
+  var a3b=document.createElement('div');a3b.className='accordion-bdy';
+  if(exDone&&ts&&ts.total){
+    a3h.addEventListener('click',function(){a3h.classList.toggle('open');});
+    // Combine team stats with leader vals
+    var combined={cc:{},vc:{},total:ts.total+1};
+    for(var ck4 in CATS)combined.cc[ck4]=ts.cc[ck4]||0;
+    for(var vk in ts.vc)combined.vc[vk]=ts.vc[vk];
+    for(var lvi=0;lvi<S.leaderEx.vals.length;lvi++){var lid=S.leaderEx.vals[lvi];combined.vc[lid]=(combined.vc[lid]||0)+1;var lv=valById(lid);if(lv)combined.cc[lv.cat]=(combined.cc[lv.cat]||0)+1;}
+    a3b.innerHTML='<div class="page-sub" style="margin-bottom:12px">Zesp\u00f3\u0142 + '+esc(team.name)+' \u2014 '+(ts.total+1)+' os\u00f3b</div>';
+    var grid3=document.createElement('div');grid3.className='dash-grid';
+    var svgId3='stCombSvg',ttId3='stCombTT';
+    var c0b=document.createElement('div');c0b.className='dash-card fullcard ring-small';
+    c0b.innerHTML='<h3>Ko\u0142o Schwartza</h3><div class="heatmap-wrap"><svg id="'+svgId3+'" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="'+ttId3+'"></div></div>';
+    grid3.appendChild(c0b);setTimeout(function(){buildRingFromStats(svgId3,combined);},80);
+    var vc3=combined.vc;var c1b=mkCard('Top 10 warto\u015bci');
+    var sorted3=Object.keys(vc3).map(function(k){return{id:parseInt(k),c:vc3[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+    var maxV3=sorted3.length?sorted3[0].c:1;
+    for(var s3i=0;s3i<sorted3.length;s3i++){var sv3=valById(sorted3[s3i].id);c1b.cnt.appendChild(mkBar(sv3?sv3.pl:'?',sorted3[s3i].c,maxV3,CATS[sv3?sv3.cat:'']?CATS[sv3.cat].color:'#C5A55A'));}
+    grid3.appendChild(c1b.el);
+    var c2b=mkCard('Ranking kategorii');var catArr3=CO.map(function(ck5){return{key:ck5,c:combined.cc[ck5]||0};}).sort(function(a,b){return b.c-a.c;});
+    var maxCat3=catArr3.length?catArr3[0].c:1;
+    for(var j3=0;j3<catArr3.length;j3++)c2b.cnt.appendChild(mkBar(CATS[catArr3[j3].key].pl,catArr3[j3].c,maxCat3,CATS[catArr3[j3].key].color));
+    grid3.appendChild(c2b.el);
+    var c3b=mkCard('Wymiary Schwartza');
+    var dimArr3=['openness','enhancement','conservation','transcendence'].map(function(dk2){var s2=0;DIM_CATS[dk2].forEach(function(ck6){s2+=(combined.cc[ck6]||0);});return{key:dk2,c:s2};}).sort(function(a,b){return b.c-a.c;});
+    var maxDim3=dimArr3.length?dimArr3[0].c:1;
+    for(var d3i=0;d3i<dimArr3.length;d3i++)c3b.cnt.appendChild(mkBar(DIMS[dimArr3[d3i].key].pl,dimArr3[d3i].c,maxDim3,dCol[dimArr3[d3i].key]));
+    grid3.appendChild(c3b.el);a3b.appendChild(grid3);
+  }
+  container.appendChild(a3h);container.appendChild(a3b);
 }
 function buildRingFromStats(svgId,ts){
   var svg=document.getElementById(svgId);if(!svg)return;svg.innerHTML='';var cx=300,cy=300,R=240,r2=80,n=CO.length,st=360/n;
@@ -777,53 +877,95 @@ function buildRingFromStats(svgId,ts){
   var t1=svgE('text',{x:cx,y:cy-8,fill:'#C5A55A','font-size':'14','font-weight':'700','text-anchor':'middle'});t1.textContent='Top 5';svg.appendChild(t1);
   var t2=svgE('text',{x:cx,y:cy+12,fill:'#8A9BB0','font-size':'11','text-anchor':'middle'});t2.textContent=ts.total+' studentów';svg.appendChild(t2);
 }
-function buildLeaderValuesExercise(container,team){
-  // State stored on S
-  if(!S.leaderEx)S.leaderEx={dims:[],cats:[],vals:[]};
-  container.innerHTML='';
-  // Step 1: Rank 4 dimensions
-  var s1=document.createElement('div');s1.className='lv-section';
-  s1.innerHTML='<h3>Krok 1: Uszereguj 4 wymiary warto\u015bci</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Kt\u00f3ry wymiar najlepiej opisuje '+team.name+'? Przeci\u0105gnij od najwa\u017cniejszego (1) do najmniej wa\u017cnego (4).</p>';
-  var dimOrder=S.leaderEx.dims.length===4?S.leaderEx.dims:['openness','enhancement','conservation','transcendence'];
-  S.leaderEx.dims=dimOrder;
-  for(var i=0;i<dimOrder.length;i++){
-    var d=document.createElement('div');d.className='lv-rank-item';d.setAttribute('data-idx',i);d.setAttribute('draggable','true');
-    d.innerHTML='<span class="rank-num">'+(i+1)+'</span><span class="rank-name">'+DIMS[dimOrder[i]].pl+'</span>';
-    d.addEventListener('dragstart',function(e){this._idx=parseInt(this.getAttribute('data-idx'));this.classList.add('dragging');});
-    d.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
-    d.addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');var from=e.dataTransfer?parseInt(document.querySelector('.lv-rank-item.dragging').getAttribute('data-idx')):0;var to=parseInt(this.getAttribute('data-idx'));if(from!==to){var it=S.leaderEx.dims.splice(from,1)[0];S.leaderEx.dims.splice(to,0,it);buildLeaderValuesExercise(container,team);}});
-    d.addEventListener('dragend',function(){this.classList.remove('dragging');});
-    s1.appendChild(d);
+function buildLeaderValuesExercise(container,team,readOnly){
+  if(!readOnly&&!S.leaderEx)S.leaderEx={dims:[],cats:[],vals:[],done:false};
+  var ex=readOnly?null:S.leaderEx;
+  if(readOnly){
+    var pids=getTeamPids(team.id);var results=[];
+    for(var pi=0;pi<pids.length;pi++){var sd=S.studentData[pids[pi]];if(sd&&sd.leaderEx)results.push(sd.leaderEx);}
+    if(!results.length){container.innerHTML='<p style="text-align:center;color:var(--muted);margin-top:24px">Brak odpowiedzi student\u00f3w.</p>';return;}
+    container.innerHTML='<h3 style="color:var(--gold);margin-bottom:12px">Odpowiedzi student\u00f3w ('+results.length+')</h3>';
+    for(var ri=0;ri<results.length;ri++){
+      var r=results[ri];var card=document.createElement('div');card.style.cssText='background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px';
+      var dimStr=r.dims?r.dims.map(function(dk){return DIMS[dk]?DIMS[dk].pl:'?';}).join(' > '):'brak';
+      var catStr=r.cats?r.cats.map(function(ck){return CATS[ck]?CATS[ck].pl:'?';}).join(', '):'brak';
+      var valStr=r.vals?r.vals.map(function(vid){var v=valById(vid);return v?v.pl:'?';}).join(', '):'brak';
+      card.innerHTML='<div style="font-size:.8rem;color:var(--muted);margin-bottom:4px">Wymiary: '+esc(dimStr)+'</div><div style="font-size:.8rem;color:var(--muted);margin-bottom:4px">Kategorie: '+esc(catStr)+'</div><div style="font-size:.8rem;color:var(--gold)">Warto\u015bci: '+esc(valStr)+'</div>';
+      container.appendChild(card);
+    }
+    return;
   }
-  container.appendChild(s1);
-  // Step 2: Select categories (10 Schwartz)
-  var s2=document.createElement('div');s2.className='lv-section';
-  s2.innerHTML='<h3>Krok 2: Kt\u00f3re kategorie pasuj\u0105 do '+team.name+'?</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Wybierz kategorie warto\u015bci, kt\u00f3re wed\u0142ug Was najlepiej opisuj\u0105 tego lidera.</p>';
-  var chipWrap=document.createElement('div');chipWrap.style.cssText='display:flex;flex-wrap:wrap;gap:4px';
-  for(var ci=0;ci<CO.length;ci++){(function(ck){
-    var chip=document.createElement('span');chip.className='lv-chip'+(S.leaderEx.cats.indexOf(ck)>=0?' selected':'');
-    chip.textContent=CATS[ck].pl;
-    chip.addEventListener('click',function(){var idx2=S.leaderEx.cats.indexOf(ck);if(idx2>=0)S.leaderEx.cats.splice(idx2,1);else S.leaderEx.cats.push(ck);chip.classList.toggle('selected');});
-    chipWrap.appendChild(chip);
-  })(CO[ci]);}
-  s2.appendChild(chipWrap);container.appendChild(s2);
-  // Step 3: Pick 5 individual values
-  var s3=document.createElement('div');s3.className='lv-section';
-  s3.innerHTML='<h3>Krok 3: Wybierz 5 kluczowych warto\u015bci '+team.name+'</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Spo\u015br\u00f3d 58 warto\u015bci wybierz dok\u0142adnie 5.</p><div class="selection-counter">Wybrano: <span id="lvCount">'+S.leaderEx.vals.length+'</span> / 5</div>';
-  var vgrid=document.createElement('div');vgrid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:300px;overflow-y:auto;padding:4px';
-  for(var vi=0;vi<VALUES.length;vi++){(function(v){
-    var card=document.createElement('div');card.className='value-card'+(S.leaderEx.vals.indexOf(v.id)>=0?' selected':'');card.style.padding='8px 10px';card.style.minHeight='auto';
-    card.innerHTML='<div class="value-dot" style="background:'+CATS[v.cat].color+'"></div><div class="value-label">'+v.pl+'</div>';
-    card.addEventListener('click',function(){var idx3=S.leaderEx.vals.indexOf(v.id);if(idx3>=0){S.leaderEx.vals.splice(idx3,1);card.classList.remove('selected');}else{if(S.leaderEx.vals.length>=5)return;S.leaderEx.vals.push(v.id);card.classList.add('selected');}var ce=document.getElementById('lvCount');if(ce)ce.textContent=S.leaderEx.vals.length;});
-    vgrid.appendChild(card);
-  })(VALUES[vi]);}
-  s3.appendChild(vgrid);
-  var saveBtn=document.createElement('button');saveBtn.className='big-btn';saveBtn.style.cssText='margin-top:12px;width:100%;padding:14px';saveBtn.textContent='Zapisz ocen\u0119 lidera';
-  saveBtn.addEventListener('click',function(){sendP({type:'leaderEx',dims:S.leaderEx.dims,cats:S.leaderEx.cats,vals:S.leaderEx.vals});saveBtn.textContent='\u2713 Zapisano!';saveBtn.disabled=true;saveS();});
-  s3.appendChild(saveBtn);
-  container.appendChild(s3);
+  container.innerHTML='';
+  var curStep=ex._step||0;
+  // Wizard tabs
+  var tabs=document.createElement('div');tabs.className='wizard-tabs';
+  var tabLabels=['1. Wymiary','2. Kategorie','3. Warto\u015bci'];
+  function goStep(s){ex._step=s;buildLeaderValuesExercise(container,team);}
+  for(var ti=0;ti<3;ti++){(function(idx){
+    var tb=document.createElement('div');tb.className='wizard-tab'+(idx===curStep?' active':'')+(idx<curStep&&((idx===0&&ex.dims.length===4)||(idx===1&&ex.cats.length===10))?' done':'');
+    tb.textContent=tabLabels[idx];tb.addEventListener('click',function(){goStep(idx);});tabs.appendChild(tb);
+  })(ti);}
+  container.appendChild(tabs);
+  var pane=document.createElement('div');pane.className='wizard-pane active';
+  if(curStep===0){
+    pane.innerHTML='<h3 style="color:var(--gold);margin-bottom:4px">Uszereguj 4 wymiary warto\u015bci</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Kt\u00f3ry wymiar najlepiej opisuje '+esc(team.name)+'? Przeci\u0105gnij od najwa\u017cniejszego (1) do najmniej wa\u017cnego (4).</p>';
+    var dimOrder=ex.dims.length===4?ex.dims:['openness','enhancement','conservation','transcendence'];
+    ex.dims=dimOrder;
+    for(var i=0;i<dimOrder.length;i++){
+      var d=document.createElement('div');d.className='lv-rank-item';d.setAttribute('data-idx',i);d.setAttribute('draggable','true');
+      d.innerHTML='<span class="rank-num">'+(i+1)+'</span><span class="rank-name">'+DIMS[dimOrder[i]].pl+'</span>';
+      d.addEventListener('dragstart',function(){this.classList.add('dragging');});
+      d.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
+      d.addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');var dr=document.querySelector('.lv-rank-item.dragging');if(!dr)return;var from=parseInt(dr.getAttribute('data-idx'));var to=parseInt(this.getAttribute('data-idx'));if(from!==to){ex.dims.splice(to,0,ex.dims.splice(from,1)[0]);buildLeaderValuesExercise(container,team);}});
+      d.addEventListener('dragend',function(){this.classList.remove('dragging');});
+      pane.appendChild(d);
+    }
+    var nxt1=document.createElement('button');nxt1.className='big-btn';nxt1.style.cssText='margin-top:16px;width:100%;padding:14px';nxt1.textContent='Dalej \u2192 Kategorie';
+    nxt1.addEventListener('click',function(){
+      if(!ex._catsSorted){var sorted=[];for(var di=0;di<ex.dims.length;di++){var cats=DIM_CATS[ex.dims[di]];for(var ci=0;ci<cats.length;ci++)sorted.push(cats[ci]);}ex.cats=sorted;ex._catsSorted=true;}
+      goStep(1);
+    });
+    pane.appendChild(nxt1);
+  } else if(curStep===1){
+    pane.innerHTML='<h3 style="color:var(--gold);margin-bottom:4px">Uszereguj 10 kategorii warto\u015bci</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:12px">Kt\u00f3re kategorie najlepiej opisuj\u0105 '+esc(team.name)+'? Przeci\u0105gnij od najwa\u017cniejszej do najmniej wa\u017cnej.</p>';
+    if(ex.cats.length!==10)ex.cats=CO.slice();
+    for(var j=0;j<ex.cats.length;j++){
+      var ck=ex.cats[j];var cat=CATS[ck]||{};
+      var item=document.createElement('div');item.className='lv-rank-item';item.setAttribute('data-idx',j);item.setAttribute('draggable','true');
+      item.innerHTML='<span class="rank-num">'+(j+1)+'</span><div style="flex:1"><span class="rank-name">'+cat.pl+'</span><span class="profile-rank-sub"> ('+DIMS[cat.dim].pl+')</span></div>';
+      item.addEventListener('dragstart',function(){this.classList.add('dragging');});
+      item.addEventListener('dragover',function(e){e.preventDefault();this.classList.add('drag-over');});
+      item.addEventListener('drop',function(e){e.preventDefault();this.classList.remove('drag-over');var dr=document.querySelector('.lv-rank-item.dragging');if(!dr)return;var from=parseInt(dr.getAttribute('data-idx'));var to=parseInt(this.getAttribute('data-idx'));if(from!==to){ex.cats.splice(to,0,ex.cats.splice(from,1)[0]);buildLeaderValuesExercise(container,team);}});
+      item.addEventListener('dragend',function(){this.classList.remove('dragging');});
+      pane.appendChild(item);
+    }
+    var nxt2=document.createElement('button');nxt2.className='big-btn';nxt2.style.cssText='margin-top:16px;width:100%;padding:14px';nxt2.textContent='Dalej \u2192 Warto\u015bci';
+    nxt2.addEventListener('click',function(){goStep(2);});pane.appendChild(nxt2);
+  } else if(curStep===2){
+    pane.innerHTML='<h3 style="color:var(--gold);margin-bottom:4px">Wybierz 5 kluczowych warto\u015bci '+esc(team.name)+'</h3><p style="font-size:.82rem;color:var(--muted);margin-bottom:8px">Spo\u015br\u00f3d 58 warto\u015bci wybierz dok\u0142adnie 5.</p><div class="selection-counter">Wybrano: <span id="lvCount">'+(ex.vals?ex.vals.length:0)+'</span> / 5</div>';
+    var srch=document.createElement('input');srch.className='search-input';srch.placeholder='Szukaj warto\u015bci...';srch.addEventListener('input',function(){var q=this.value.toLowerCase().trim();var cards=pane.querySelectorAll('.value-card');for(var si=0;si<cards.length;si++){cards[si].style.display=(!q||cards[si].getAttribute('data-pl').indexOf(q)>=0)?'':'none';}});
+    pane.appendChild(srch);
+    var vgrid=document.createElement('div');vgrid.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:350px;overflow-y:auto;padding:4px';
+    if(!ex.vals)ex.vals=[];
+    for(var vi=0;vi<VALUES.length;vi++){(function(v){
+      var card=document.createElement('div');card.className='value-card'+(ex.vals.indexOf(v.id)>=0?' selected':'');card.style.padding='8px 10px';card.style.minHeight='auto';card.setAttribute('data-pl',v.pl.toLowerCase());
+      card.innerHTML='<div class="value-dot" style="background:'+CATS[v.cat].color+'"></div><div class="value-label">'+v.pl+'<span class="profile-rank-sub"> ('+CATS[v.cat].pl+')</span></div>';
+      card.addEventListener('click',function(){var idx=ex.vals.indexOf(v.id);if(idx>=0){ex.vals.splice(idx,1);card.classList.remove('selected');}else{if(ex.vals.length>=5)return;ex.vals.push(v.id);card.classList.add('selected');}var ce=document.getElementById('lvCount');if(ce)ce.textContent=ex.vals.length;});
+      vgrid.appendChild(card);
+    })(VALUES[vi]);}
+    pane.appendChild(vgrid);
+    var saveBtn=document.createElement('button');saveBtn.className='big-btn';saveBtn.style.cssText='margin-top:16px;width:100%;padding:14px';
+    saveBtn.textContent=ex.done?'\u2713 Zapisano! (kliknij by zapisa\u0107 ponownie)':'Zatwierd\u017a ocen\u0119 lidera';
+    saveBtn.disabled=false;
+    saveBtn.addEventListener('click',function(){
+      if(ex.vals.length!==5){alert('Wybierz dok\u0142adnie 5 warto\u015bci');return;}
+      ex.done=true;sendP({type:'leaderEx',dims:ex.dims,cats:ex.cats,vals:ex.vals});saveBtn.textContent='\u2713 Zapisano!';saveS();
+    });
+    pane.appendChild(saveBtn);
+  }
+  container.appendChild(pane);
 }
-return{startPresenter:startPresenter,setMaxMembers:setMaxMembers,nav:nav,showScreen:show,adminTab:adminTab,toggleTeams:toggleTeams,reduceByOne:reduceByOne,onDashSlider:onDashSlider,joinManually:function(){var c=document.getElementById('manualRoomInput').value.trim().toUpperCase();if(c.length===5)initStudent(c);},startStudentFlow:startStudentFlow,goToRanking:goToRanking};
+return{startPresenter:startPresenter,setMaxMembers:setMaxMembers,nav:nav,showScreen:show,adminTab:adminTab,toggleTeams:toggleTeams,reduceByOne:reduceByOne,onDashSlider:onDashSlider,joinManually:function(){var c=document.getElementById('manualRoomInput').value.trim().toUpperCase();if(c.length===5)initStudent(c);},startStudentFlow:startStudentFlow,goToRanking:goToRanking,filterValues:filterValues};
 })();
 </script>
 </body></html>
