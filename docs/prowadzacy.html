@@ -432,7 +432,8 @@ function sbSave(){if(!SB_SID||S.mode!=='presenter')return;clearTimeout(_sbTimer)
 function sbLoadActive(cb){sbFetch('sessions?is_active=eq.true&order=created_at.desc&limit=1').then(function(r){return r.json();}).then(function(rows){if(rows.length&&rows[0].data&&rows[0].data.room){SB_SID=rows[0].id;cb(rows[0].data);}else cb(null);}).catch(function(){cb(null);});}
 function sbCreateSession(rc,cb){sbFetch('sessions',{method:'POST',body:{room_code:rc,is_active:true,data:{}},prefer:'return=representation'}).then(function(r){return r.json();}).then(function(rows){if(rows&&rows.length)SB_SID=rows[0].id;if(cb)cb();}).catch(function(e){console.error('SB:',e);if(cb)cb();});}
 function sbDeactivateAll(cb){sbFetch('sessions?is_active=eq.true',{method:'PATCH',body:{is_active:false}}).then(function(){if(cb)cb();}).catch(function(){if(cb)cb();});}
-function newSession(){if(!confirm('Rozpocz\u0105\u0107 now\u0105 sesj\u0119? Aktualna zostanie zamkni\u0119ta.'))return;sbDeactivateAll(function(){clearPres();S.studentData={};S.snapshots={};S.currentLimit=10;S.teamsEnabled=false;S.connections.forEach(function(c){try{c.close();}catch(e){}});S.connections=[];if(S.peer){try{S.peer.destroy();}catch(e){}}S.peer=null;var rc=genRoom();sbCreateSession(rc,function(){_applyPresData(null);});});}
+function _clearTeamLS(){try{var keys=[];for(var i=0;i<localStorage.length;i++){var k=localStorage.key(i);if(k&&(k.indexOf('teamPhoto_')===0||k.indexOf('teamNotes_')===0||k.indexOf('teamName_')===0))keys.push(k);}for(var j=0;j<keys.length;j++)localStorage.removeItem(keys[j]);}catch(e){}}
+function newSession(){if(!confirm('Rozpocz\u0105\u0107 now\u0105 sesj\u0119? Aktualna zostanie zamkni\u0119ta.'))return;sbDeactivateAll(function(){clearPres();_clearTeamLS();S.studentData={};S.snapshots={};S.currentLimit=10;S.teamsEnabled=false;S.connections.forEach(function(c){try{c.close();}catch(e){}});S.connections=[];if(S.peer){try{S.peer.destroy();}catch(e){}}S.peer=null;var rc=genRoom();sbCreateSession(rc,function(){_applyPresData(null);});});}
 function sbLoadHistory(cb){sbFetch('sessions?order=created_at.desc&limit=20&select=id,room_code,created_at,is_active,data').then(function(r){return r.json();}).then(function(rows){cb(rows);}).catch(function(){cb([]);});}
 function sbLoadSessionById(sid,cb){sbFetch('sessions?id=eq.'+sid).then(function(r){return r.json();}).then(function(rows){if(rows.length){SB_SID=rows[0].id;cb(rows[0].data);}else cb(null);}).catch(function(){cb(null);});}
 var SK='values_explorer_student';
@@ -512,7 +513,7 @@ function _applyPresData(saved){
   }else{S.roomCode=genRoom();}
   document.getElementById('topNav').classList.remove('hidden');show('canvasPage');nav('canvasPage');buildCanvas();initPeer();
   if(!saved||!saved.room)takeSnap(10);
-  if(S.teamsEnabled){var tg=document.getElementById('teamToggle');if(tg)tg.checked=true;var tgr=document.getElementById('teamsGrid');if(tgr)tgr.style.display='';}
+  var tg=document.getElementById('teamToggle');if(tg)tg.checked=!!S.teamsEnabled;var tgr=document.getElementById('teamsGrid');if(tgr)tgr.style.display=S.teamsEnabled?'':'none';
   if(!SB_SID&&S.roomCode){sbCreateSession(S.roomCode,function(){sbSave();});}
   setInterval(function(){broadcast({type:'ping'});},15000);
 }
@@ -552,8 +553,9 @@ function onSMsg(pid,d){
   else if(d.type==='rerank'){sd.ranked=d.values;}
   else if(d.type==='team'){sd.team=d.team;sd.phase='teams';}
   else if(d.type==='leaderEx'){sd.leaderEx=d;}
-  else if(d.type==='teamPhoto'){broadcast({type:'teamPhoto',team:d.team,data:d.data});}
-  else if(d.type==='teamNotes'){broadcast({type:'teamNotes',team:d.team,data:d.data});}
+  else if(d.type==='teamPhoto'){try{localStorage.setItem('teamPhoto_'+d.team,d.data);}catch(ex){}broadcast({type:'teamPhoto',team:d.team,data:d.data});}
+  else if(d.type==='teamNotes'){try{localStorage.setItem('teamNotes_'+d.team,d.data);}catch(ex){}broadcast({type:'teamNotes',team:d.team,data:d.data});}
+  else if(d.type==='teamName'){try{if(d.name)localStorage.setItem('teamName_'+d.team,d.name);else localStorage.removeItem('teamName_'+d.team);}catch(ex){}broadcast({type:'teamName',team:d.team,name:d.name});}
   sd.lastSeen=Date.now();
   upAll();
 }
@@ -588,7 +590,7 @@ function editTeam(pid){
   var sd=S.studentData[pid];if(!sd)return;
   var sel=document.createElement('select');sel.className='team-select';
   sel.innerHTML='<option value="">\u2014</option>'+TEAMS.map(function(t){return'<option value="'+esc(t.id)+'"'+(sd.team===t.id?' selected':'')+'>'+esc(t.name)+'</option>';}).join('');
-  sel.addEventListener('change',function(){sd.team=this.value||null;sendTo(pid,{type:'setTeam',team:sd.team});refreshPeople();refreshTeams();});
+  sel.addEventListener('change',function(){sd.team=this.value||null;sd.leaderEx=null;sendTo(pid,{type:'setTeam',team:sd.team});refreshPeople();refreshTeams();});
   var row=document.querySelector('#peopleBody tr[data-pid="'+pid+'"]');
   if(row){row.children[2].innerHTML='';row.children[2].appendChild(sel);}
 }
@@ -677,7 +679,20 @@ function buildPoster(container,team,opts){
   }
   // === Title ===
   var titleSec=document.createElement('div');titleSec.className='poster-section poster-title';
-  titleSec.innerHTML='<h1>\u2605 Zesp\u00f3\u0142: '+esc(team.name)+' \u2605</h1>';
+  var customName='';try{customName=localStorage.getItem('teamName_'+team.id)||'';}catch(e){}
+  var displayName=customName||team.name;
+  var h1=document.createElement('h1');h1.textContent='\u2605 Zesp\u00f3\u0142: '+displayName+' \u2605';h1.style.cursor='pointer';h1.title='Kliknij aby zmieni\u0107 nazw\u0119 zespo\u0142u';
+  h1.addEventListener('click',function(){
+    var cur='';try{cur=localStorage.getItem('teamName_'+team.id)||'';}catch(ex){}
+    var nw=prompt('Nazwa zespo\u0142u (puste = domy\u015blna: '+team.name+')',cur||team.name);
+    if(nw===null)return;nw=nw.trim();
+    var finalName=nw||team.name;
+    try{if(nw)localStorage.setItem('teamName_'+team.id,nw);else localStorage.removeItem('teamName_'+team.id);}catch(ex){}
+    h1.textContent='\u2605 Zesp\u00f3\u0142: '+finalName+' \u2605';
+    if(typeof sendP==='function')sendP({type:'teamName',team:team.id,name:nw});
+    if(typeof broadcast==='function')broadcast({type:'teamName',team:team.id,name:nw});
+  });
+  titleSec.appendChild(h1);
   poster.appendChild(titleSec);
   // === Team photo ===
   var photoSec=document.createElement('div');photoSec.className='poster-section poster-photo';
@@ -783,10 +798,18 @@ function buildPoster(container,team,opts){
   notesSec.appendChild(ta);poster.appendChild(notesSec);
   container.appendChild(poster);
 }
+function _resizeImage(file,maxW,maxH,quality,cb){
+  var img2=new Image();img2.onload=function(){
+    var w=img2.width,h=img2.height;if(w>maxW||h>maxH){var r=Math.min(maxW/w,maxH/h);w=Math.round(w*r);h=Math.round(h*r);}
+    var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img2,0,0,w,h);
+    cb(c.toDataURL('image/jpeg',quality));
+  };img2.onerror=function(){cb(null);};
+  var rd=new FileReader();rd.onload=function(ev){img2.src=ev.target.result;};rd.readAsDataURL(file);
+}
 function handleTeamPhoto(input,team,photoSec){
   if(!input.files||!input.files[0])return;
-  var reader=new FileReader();reader.onload=function(e){
-    var data=e.target.result;if(data.length>500000){alert('Zdj\u0119cie za du\u017ce (max ~400KB). Zmniejsz rozdzielczo\u015b\u0107.');return;}
+  _resizeImage(input.files[0],800,600,0.7,function(data){
+    if(!data){alert('Nie udało się przetworzyć zdjęcia.');return;}
     try{localStorage.setItem('teamPhoto_'+team.id,data);}catch(ex){}
     if(typeof sendP==='function')sendP({type:'teamPhoto',team:team.id,data:data});
     if(typeof broadcast==='function')broadcast({type:'teamPhoto',team:team.id,data:data});
@@ -797,7 +820,7 @@ function handleTeamPhoto(input,team,photoSec){
     var chgI=document.createElement('input');chgI.type='file';chgI.accept='image/*';
     chgI.addEventListener('change',function(){handleTeamPhoto(this,team,photoSec);});
     chgL.appendChild(chgI);chgLbl.appendChild(chgL);photoSec.appendChild(chgLbl);
-  };reader.readAsDataURL(input.files[0]);
+  });
 }
 function showAdminTeamDetail(tid){
   var team=TEAMS.find(function(t){return t.id===tid;});if(!team)return;
@@ -936,17 +959,36 @@ function initDimFilter(){
 }
 function buildDash(lim){
   takeSnap(lim);var grid=document.getElementById('dashGrid');grid.innerHTML='';var cc=getCounts(lim);var vc=cc._vc;var tot=Object.keys(S.studentData).length;
-  document.getElementById('dashSub').textContent='Top '+lim+' \u2014 '+tot+' studentów';
+  document.getElementById('dashSub').textContent='Top '+lim+' \u2014 '+tot+' student\u00f3w';
+  if(S.teamsEnabled){
+    grid.style.display='block';
+    var hasAny=false;
+    for(var ti=0;ti<TEAMS.length;ti++){
+      var team=TEAMS[ti];var pids=getTeamPids(team.id);if(!pids.length)continue;hasAny=true;
+      var wrap=document.createElement('div');wrap.style.cssText='margin-bottom:32px';
+      var ccP=getCounts(lim,pids);
+      var memP=pids.map(function(p){return S.studentData[p]&&S.studentData[p].name||null;}).filter(function(n){return !!n;});
+      var tsP={cc:{},vc:ccP._vc||{},total:pids.length,members:memP};for(var ckP in CATS)tsP.cc[ckP]=ccP[ckP]||0;
+      var lsP=null;var lR=[];
+      for(var pi=0;pi<pids.length;pi++){var sdP=S.studentData[pids[pi]];if(sdP&&sdP.leaderEx&&sdP.leaderEx.vals&&sdP.leaderEx.vals.length)lR.push(sdP.leaderEx);}
+      if(lR.length){var lcc={},lvc={};for(var ckL in CATS)lcc[ckL]=0;for(var ri=0;ri<lR.length;ri++){for(var rvi=0;rvi<lR[ri].vals.length;rvi++){var vid=lR[ri].vals[rvi];lvc[vid]=(lvc[vid]||0)+1;var vO=valById(vid);if(vO)lcc[vO.cat]=(lcc[vO.cat]||0)+1;}}lsP={cc:lcc,vc:lvc,total:lR.length};}
+      buildPoster(wrap,team,{teamStats:tsP,leaderStats:lsP,memberNames:memP});
+      grid.appendChild(wrap);
+    }
+    if(!hasAny)grid.innerHTML='<div style="text-align:center;color:var(--muted);padding:40px">Brak zespo\u0142\u00f3w z cz\u0142onkami</div>';
+    return;
+  }
+  grid.style.display='';
   var c0=document.createElement('div');c0.className='dash-card fullcard ring-small';
-  c0.innerHTML='<h3>Koło Schwartza</h3><div class="heatmap-wrap"><svg id="dashRingSvg" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="dashRingTT"></div></div>';
-  var bk0=document.createElement('button');bk0.className='secondary-btn dash-back';bk0.textContent='\u2190 Wróć';bk0.addEventListener('click',function(ev){ev.stopPropagation();c0.classList.remove('expanded');});
+  c0.innerHTML='<h3>Ko\u0142o Schwartza</h3><div class="heatmap-wrap"><svg id="dashRingSvg" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="dashRingTT"></div></div>';
+  var bk0=document.createElement('button');bk0.className='secondary-btn dash-back';bk0.textContent='\u2190 Wr\u00f3\u0107';bk0.addEventListener('click',function(ev){ev.stopPropagation();c0.classList.remove('expanded');});
   c0.insertBefore(bk0,c0.firstChild);
   c0.addEventListener('click',function(e){if(!c0.classList.contains('expanded')&&e.target.tagName!=='INPUT'&&e.target.tagName!=='BUTTON')c0.classList.add('expanded');});
   grid.appendChild(c0);
   setTimeout(function(){buildRing('dashRingSvg','dashRingTT',lim);},50);
   var activeCats={};for(var di=0;di<S.dashDims.length;di++){var cats=DIM_CATS[S.dashDims[di]];for(var ci=0;ci<cats.length;ci++)activeCats[cats[ci]]=true;}
-  var fvc={};for(var vid in vc){var v=valById(parseInt(vid));if(v&&activeCats[v.cat])fvc[vid]=vc[vid];}
-  var c1=mkCard('Top 10 wartości');var sorted=Object.keys(fvc).map(function(k){return{id:parseInt(k),c:fvc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
+  var fvc={};for(var vid2 in vc){var v=valById(parseInt(vid2));if(v&&activeCats[v.cat])fvc[vid2]=vc[vid2];}
+  var c1=mkCard('Top 10 warto\u015bci');var sorted=Object.keys(fvc).map(function(k){return{id:parseInt(k),c:fvc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,10);
   var maxV=sorted.length?sorted[0].c:1;
   for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);c1.cnt.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#5B8A9A'));}
   grid.appendChild(c1.el);
@@ -959,6 +1001,7 @@ function buildDash(lim){
   for(var dii=0;dii<dimArr.length;dii++)c3.cnt.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,dCol[dimArr[dii].key]));
   grid.appendChild(c3.el);
 }
+
 function mkCard(title){
   var card=document.createElement('div');card.className='dash-card';
   var bk=document.createElement('button');bk.className='secondary-btn dash-back';bk.textContent='\u2190 Wróć';bk.addEventListener('click',function(ev){ev.stopPropagation();card.classList.remove('expanded');});
