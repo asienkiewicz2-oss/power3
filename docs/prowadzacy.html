@@ -332,7 +332,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <button class="admin-tab" id="teamsTabBtn" onclick="APP.adminTab(this,'adminTeams')">Zespoły</button>
     <button class="admin-tab" onclick="APP.adminTab(this,'adminReduce')">Redukcja</button>
   </div>
-  <div class="admin-section active" id="adminQR"><h3>Zeskanujcie kod</h3><div id="qrBox"></div><div class="room-code" id="roomCodeDisplay"></div><div style="font-size:.8rem;color:var(--muted);margin-top:8px;word-break:break-all" id="roomUrlDisplay"></div><div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="secondary-btn" onclick="APP.exportSession()" style="font-size:.82rem">💾 Eksportuj sesję</button><label class="secondary-btn" style="font-size:.82rem;cursor:pointer">📂 Importuj sesję <input type="file" accept=".json" style="display:none" onchange="APP.importSession(this.files[0])"></label></div></div>
+  <div class="admin-section active" id="adminQR"><h3>Zeskanujcie kod</h3><div id="qrBox"></div><div class="room-code" id="roomCodeDisplay"></div><div style="font-size:.8rem;color:var(--muted);margin-top:8px;word-break:break-all" id="roomUrlDisplay"></div><div style="margin-top:20px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap"><button class="danger-btn" onclick="APP.newSession()" style="font-size:.82rem;padding:8px 16px">🔄 Nowa sesja</button><button class="secondary-btn" onclick="APP.exportSession()" style="font-size:.82rem">💾 Eksportuj sesję</button><label class="secondary-btn" style="font-size:.82rem;cursor:pointer">📂 Importuj sesję <input type="file" accept=".json" style="display:none" onchange="APP.importSession(this.files[0])"></label></div></div>
   <div class="admin-section" id="adminPeople"><table class="people-table"><thead><tr><th>Imię</th><th>Etap</th><th>Zespół</th><th></th></tr></thead><tbody id="peopleBody"></tbody></table><div style="text-align:center;margin-top:16px;color:var(--muted);font-size:.82rem" id="peopleEmpty">Brak połączonych studentów</div></div>
   <div class="admin-section" id="adminTeams"><div class="config-row"><label for="maxMembers">Maks. członków w zespole</label><input type="number" id="maxMembers" value="5" min="1" max="20" onchange="APP.setMaxMembers(this.value)"></div><div class="config-row" style="margin-bottom:20px"><label for="teamToggle">Aktywuj pracę zespołową</label><label class="toggle-switch"><input type="checkbox" id="teamToggle" onchange="APP.toggleTeams(this.checked)"><span class="toggle-slider"></span></label></div><div class="teams-grid" id="teamsGrid" style="display:none"></div></div>
   <div class="admin-section" id="adminReduce">
@@ -421,6 +421,20 @@ var TEAMS=[
   {id:"obama",name:"Barack Obama",initials:"BO",color:"#2980B9",img:"img/obama.jpg",bioFile:"bios/obama.html",subtitle:"ur. 1961 \u2022 USA",gender:"m",desc:"44. prezydent Stan\u00f3w Zjednoczonych (2009\u20132017), pierwszy czarnosk\u00f3ry prezydent w historii USA, laureat Pokojowej Nagrody Nobla w 2009 roku."}
 ];
 
+
+// SUPABASE
+var SB_URL='https://mtzljhhmnzhkovzbsonm.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10emxqaGhtbnpoa292emJzb25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDc1MzEsImV4cCI6MjA5MTU4MzUzMX0.FHkMuRNvaPzFQvVsvzUFRl7oDU8EvOqqZAKplwRKzks';
+var SB_SID=null;var _sbTimer=null;
+function sbFetch(p,o){o=o||{};var h={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};if(o.prefer)h['Prefer']=o.prefer;return fetch(SB_URL+'/rest/v1/'+p,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined});}
+function _buildSnap(){var snap={room:S.roomCode,studentData:{},teamsEnabled:S.teamsEnabled,maxMembers:S.maxMembers,currentLimit:S.currentLimit,snapshots:S.snapshots};for(var pid in S.studentData){var sd=S.studentData[pid];snap.studentData[pid]={connId:sd.connId,name:sd.name,top10:sd.top10,ranked:sd.ranked,phase:sd.phase,team:sd.team,leaderEx:sd.leaderEx};}return snap;}
+function sbSave(){if(!SB_SID||S.mode!=='presenter')return;clearTimeout(_sbTimer);_sbTimer=setTimeout(function(){sbFetch('sessions?id=eq.'+SB_SID,{method:'PATCH',body:{data:_buildSnap()}});},2000);}
+function sbLoadActive(cb){sbFetch('sessions?is_active=eq.true&order=created_at.desc&limit=1').then(function(r){return r.json();}).then(function(rows){if(rows.length&&rows[0].data&&rows[0].data.room){SB_SID=rows[0].id;cb(rows[0].data);}else cb(null);}).catch(function(){cb(null);});}
+function sbCreateSession(rc,cb){sbFetch('sessions',{method:'POST',body:{room_code:rc,is_active:true,data:{}},prefer:'return=representation'}).then(function(r){return r.json();}).then(function(rows){if(rows&&rows.length)SB_SID=rows[0].id;if(cb)cb();}).catch(function(e){console.error('SB:',e);if(cb)cb();});}
+function sbDeactivateAll(cb){sbFetch('sessions?is_active=eq.true',{method:'PATCH',body:{is_active:false}}).then(function(){if(cb)cb();}).catch(function(){if(cb)cb();});}
+function newSession(){if(!confirm('Rozpocz\u0105\u0107 now\u0105 sesj\u0119? Aktualna zostanie zamkni\u0119ta.'))return;sbDeactivateAll(function(){clearPres();S.studentData={};S.snapshots={};S.currentLimit=10;S.teamsEnabled=false;S.connections.forEach(function(c){try{c.close();}catch(e){}});S.connections=[];if(S.peer){try{S.peer.destroy();}catch(e){}}S.peer=null;var rc=genRoom();sbCreateSession(rc,function(){_applyPresData(null);});});}
+function sbLoadHistory(cb){sbFetch('sessions?order=created_at.desc&limit=20&select=id,room_code,created_at,is_active,data').then(function(r){return r.json();}).then(function(rows){cb(rows);}).catch(function(){cb([]);});}
+function sbLoadSessionById(sid,cb){sbFetch('sessions?id=eq.'+sid).then(function(r){return r.json();}).then(function(rows){if(rows.length){SB_SID=rows[0].id;cb(rows[0].data);}else cb(null);}).catch(function(){cb(null);});}
 var SK='values_explorer_student';
 var S={mode:null,roomCode:'',peer:null,connections:[],conn:null,studentData:{},currentLimit:10,snapshots:{},teamsEnabled:false,maxMembers:5,studentName:'',selected:[],ranked:[],maxSelect:10,myTeam:null,dashLimit:5,dashDims:['openness','enhancement','conservation','transcendence']};
 
@@ -451,6 +465,7 @@ function savePres(){
     for(var pid in S.studentData){var sd=S.studentData[pid];snap.studentData[pid]={connId:sd.connId,name:sd.name,top10:sd.top10,ranked:sd.ranked,phase:sd.phase,team:sd.team,leaderEx:sd.leaderEx};}
     localStorage.setItem(PK,JSON.stringify(snap));
   }catch(e){}
+  sbSave();
 }
 function loadPres(){try{return JSON.parse(localStorage.getItem(PK));}catch(e){return null;}}
 function clearPres(){try{localStorage.removeItem(PK);}catch(e){}}
@@ -498,11 +513,18 @@ function _applyPresData(saved){
   document.getElementById('topNav').classList.remove('hidden');show('canvasPage');nav('canvasPage');buildCanvas();initPeer();
   if(!saved||!saved.room)takeSnap(10);
   if(S.teamsEnabled){var tg=document.getElementById('teamToggle');if(tg)tg.checked=true;var tgr=document.getElementById('teamsGrid');if(tgr)tgr.style.display='';}
+  if(!SB_SID&&S.roomCode){sbCreateSession(S.roomCode,function(){sbSave();});}
   setInterval(function(){broadcast({type:'ping'});},15000);
 }
 function startPresenter(){
-  var saved=loadPres();
-  _applyPresData(saved);
+  sbLoadActive(function(dbData){
+    if(dbData&&dbData.room){_applyPresData(dbData);}
+    else{
+      var saved=loadPres();
+      if(saved&&saved.room){sbCreateSession(saved.room,function(){_applyPresData(saved);sbSave();});}
+      else{var rc=genRoom();sbCreateSession(rc,function(){_applyPresData(null);});}
+    }
+  });
 }
 function initPeer(){
   var pid='val-'+S.roomCode.toLowerCase();S.peer=new Peer(pid);
@@ -1015,7 +1037,7 @@ function buildLeaderValuesExercise(container,team,readOnly){
   container.appendChild(pane);
 }
 
-return{startPresenter:startPresenter,setMaxMembers:setMaxMembers,nav:nav,showScreen:show,adminTab:adminTab,toggleTeams:toggleTeams,reduceByOne:reduceByOne,onDashSlider:onDashSlider,exportSession:exportSession,importSession:importSession,joinManually:function(){},startStudentFlow:startStudentFlow,goToRanking:goToRanking};
+return{startPresenter:startPresenter,setMaxMembers:setMaxMembers,nav:nav,showScreen:show,adminTab:adminTab,toggleTeams:toggleTeams,reduceByOne:reduceByOne,onDashSlider:onDashSlider,exportSession:exportSession,importSession:importSession,newSession:newSession,joinManually:function(){},startStudentFlow:startStudentFlow,goToRanking:goToRanking};
 })();
 </script>
 </body></html>
