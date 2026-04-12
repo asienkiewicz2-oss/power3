@@ -560,7 +560,7 @@ function onSMsg(pid,d){
 function broadcast(m){for(var i=0;i<S.connections.length;i++)if(S.connections[i].open)S.connections[i].send(m);}
 function sendTo(pid,m){var c=S.connections.find(function(cn){return cn.peer===pid;});if(c&&c.open)c.send(m);}
 function upAll(){savePres();upReduce();refreshPeople();if(!document.getElementById('livePage').classList.contains('hidden'))buildRing('liveSvg','liveTT',S.currentLimit);var sub=document.getElementById('liveSub');if(sub)sub.textContent='Top '+S.currentLimit+' \u2014 '+Object.keys(S.studentData).length+' studentów';broadcastTeamStats();}
-function broadcastTeamStats(){if(!S.teamsEnabled)return;var stats={};for(var i=0;i<TEAMS.length;i++){var tid=TEAMS[i].id;var pids=getTeamPids(tid);var cc=getCounts(5,pids);var vc=cc._vc;stats[tid]={cc:{},vc:vc,total:pids.length};for(var ck in CATS)stats[tid].cc[ck]=cc[ck]||0;}broadcast({type:'teamStats',stats:stats});}
+function broadcastTeamStats(){if(!S.teamsEnabled)return;var stats={};for(var i=0;i<TEAMS.length;i++){var tid=TEAMS[i].id;var pids=getTeamPids(tid);var cc=getCounts(5,pids);var vc=cc._vc;var mems=[];for(var mi=0;mi<pids.length;mi++){var msd=S.studentData[pids[mi]];if(msd&&msd.name)mems.push(msd.name);}stats[tid]={cc:{},vc:vc,total:pids.length,members:mems};for(var ck in CATS)stats[tid].cc[ck]=cc[ck]||0;}broadcast({type:'teamStats',stats:stats});}
 function reduceByOne(){if(S.currentLimit<=5)return;S.currentLimit--;takeSnap(S.currentLimit);broadcast({type:'reduce',limit:S.currentLimit});upAll();if(S.currentLimit===5){for(var k in S.studentData)if(S.studentData[k].phase!=='teams')S.studentData[k].phase='done';broadcast({type:'final'});}}
 function takeSnap(l){S.snapshots[l]=getCounts(l);}
 
@@ -695,7 +695,7 @@ function buildPosterAdmin(container,team){
   if(team.desc){var desc=document.createElement('div');desc.className='poster-leader-desc';desc.textContent=team.desc;lInfo.appendChild(desc);}
   // Aggregate leader values from students
   var leaderResults=[];
-  for(var pi2=0;pi2<pids.length;pi2++){var sd2=S.studentData[pids[pi2]];if(sd2&&sd2.leaderEx&&sd2.leaderEx.done)leaderResults.push(sd2.leaderEx);}
+  for(var pi2=0;pi2<pids.length;pi2++){var sd2=S.studentData[pids[pi2]];if(sd2&&sd2.leaderEx&&sd2.leaderEx.vals&&sd2.leaderEx.vals.length)leaderResults.push(sd2.leaderEx);}
   if(leaderResults.length){
     var valsRow=document.createElement('div');valsRow.className='poster-vals-row';
     var ringCol=document.createElement('div');ringCol.className='poster-ring-wrap';
@@ -947,7 +947,36 @@ function showFinal(){}
 function showTeamChoose(){}
 function showStudentTeamView(){}
 function buildStudentTeamDash(){}
-function buildRingFromStats(){}
+function buildRingFromStats(svgId,ts){
+  var svg=document.getElementById(svgId);if(!svg)return;svg.innerHTML='';var cx=300,cy=300,R=240,r2=80,n=CO.length,st=360/n;
+  svg.appendChild(svgE('circle',{cx:cx,cy:cy,r:R+2,fill:'none',stroke:'rgba(255,255,255,0.08)','stroke-width':1}));
+  var cc=ts.cc;var maxC=1;for(var ck in CATS)if(cc[ck])maxC=Math.max(maxC,cc[ck]);
+  for(var i=0;i<n;i++){var sa=-90+i*st,ea=sa+st;var cat=CO[i];
+    var c=cc[cat]||0;var inten=Math.min(c/Math.max(maxC,1),1);
+    svg.appendChild(svgE('path',{d:arcP(cx,cy,r2,R,sa,ea),fill:hR('#2E8B8B',0.04+inten*0.7),stroke:'rgba(255,255,255,0.12)','stroke-width':1.5}));
+    var ma=sa+st/2;var lr=R*0.78,lx=cx+lr*Math.cos(ma*Math.PI/180),ly=cy+lr*Math.sin(ma*Math.PI/180);
+    var lb=svgE('text',{x:lx,y:ly,fill:'#fff','font-size':'11.5','font-weight':'700','text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none'});lb.textContent=CATS[cat].pl;var rot=ma;if(rot>90&&rot<270)rot+=180;lb.setAttribute('transform','rotate('+rot+','+lx+','+ly+')');svg.appendChild(lb);
+    var cr2m=R*0.52,ccx2=cx+cr2m*Math.cos(ma*Math.PI/180),ccy2=cy+cr2m*Math.sin(ma*Math.PI/180);
+    var cntT=svgE('text',{x:ccx2,y:ccy2,fill:'#fff','font-size':'24','font-weight':'900','text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none',opacity:'0.9'});cntT.textContent=c>0?c:'';svg.appendChild(cntT);
+  }
+  var outerR=R+28;var defs2=svgE('defs',{});svg.appendChild(defs2);
+  for(var di=0;di<DIM_ARCS.length;di++){var dd=DIM_ARCS[di];var fa=-90+dd.from*st,ta=-90+dd.to*st;var midA=(fa+ta)/2;
+    var label=DIMS[dd.dim].pl.toUpperCase();var arcR=outerR;
+    var needFlip=(midA>90&&midA<270);var startA=needFlip?ta:fa,endA=needFlip?fa:ta;
+    var pathId='stArc_'+svgId+'_'+di;
+    var sar=startA*Math.PI/180,ear=endA*Math.PI/180;
+    var sx=cx+arcR*Math.cos(sar),sy=cy+arcR*Math.sin(sar);
+    var ex=cx+arcR*Math.cos(ear),ey=cy+arcR*Math.sin(ear);
+    var sweep=needFlip?0:1;var lg=Math.abs(endA-startA)>180?1:0;
+    var pd='M'+sx+','+sy+' A'+arcR+','+arcR+' 0 '+lg+' '+sweep+' '+ex+','+ey;
+    defs2.appendChild(svgE('path',{id:pathId,d:pd,fill:'none',stroke:'none'}));
+    var txt=svgE('text',{fill:'#fff','font-size':'10','font-weight':'600','letter-spacing':'3',opacity:'0.55'});
+    var tp=svgE('textPath',{});tp.setAttributeNS('http://www.w3.org/1999/xlink','xlink:href','#'+pathId);tp.setAttribute('startOffset','50%');tp.setAttribute('text-anchor','middle');
+    tp.textContent=label;txt.appendChild(tp);svg.appendChild(txt);}
+  svg.appendChild(svgE('circle',{cx:cx,cy:cy,r:r2-4,fill:'#0F1923',stroke:'rgba(255,255,255,0.1)','stroke-width':1}));
+  var t1=svgE('text',{x:cx,y:cy-8,fill:'#C5A55A','font-size':'14','font-weight':'700','text-anchor':'middle'});t1.textContent='Top 5';svg.appendChild(t1);
+  var t2=svgE('text',{x:cx,y:cy+12,fill:'#8A9BB0','font-size':'11','text-anchor':'middle'});t2.textContent=ts.total+' student\u00f3w';svg.appendChild(t2);
+}
 function buildLeaderValuesExercise(container,team,readOnly){
   if(!readOnly&&!S.leaderEx)S.leaderEx={dims:[],cats:[],vals:[],done:false};
   var ex=readOnly?null:S.leaderEx;
@@ -1030,7 +1059,7 @@ function buildLeaderValuesExercise(container,team,readOnly){
     saveBtn.disabled=false;
     saveBtn.addEventListener('click',function(){
       if(ex.vals.length!==5){alert('Wybierz dok\u0142adnie 5 warto\u015bci');return;}
-      ex.done=true;sendP({type:'leaderEx',dims:ex.dims,cats:ex.cats,vals:ex.vals});saveBtn.textContent='\u2713 Zapisano!';saveS();
+      ex.done=true;sendP({type:'leaderEx',dims:ex.dims,cats:ex.cats,vals:ex.vals,done:true});saveBtn.textContent='\u2713 Zapisano!';saveS();
     });
     pane.appendChild(saveBtn);
   }
