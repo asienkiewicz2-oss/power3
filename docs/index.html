@@ -685,7 +685,7 @@ function startPresenter(){
     else{
       var saved=loadPres();
       if(saved&&saved.room){sbCreateSession(saved.room,function(){_applyPresData(saved);savePres();});}
-      else{var rc=genRoom();sbCreateSession(rc,function(){_applyPresData(null);});}
+      else{var rc=genRoom();sbCreateSession(rc,function(){_applyPresData({room:rc});});}
     }
   });
 }
@@ -736,7 +736,7 @@ function takeSnap(l){S.snapshots[l]=getCounts(l);}
 // ADMIN TABS
 function adminTab(btn,id){var secs=document.querySelectorAll('.admin-section');for(var i=0;i<secs.length;i++)secs[i].classList.remove('active');document.getElementById(id).classList.add('active');var tabs=document.querySelectorAll('.admin-tab');for(var j=0;j<tabs.length;j++)tabs[j].classList.remove('active');btn.classList.add('active');if(id==='adminReduce')upReduce();if(id==='adminTeams')refreshTeams();}
 function refreshAdmin(){refreshPeople();upReduce();buildQR();}
-function buildQR(){document.getElementById('roomCodeDisplay').textContent=S.roomCode;var b=window.location.origin+window.location.pathname.replace(/[^\/]*$/,'');var u=b+'index.html?room='+S.roomCode;document.getElementById('roomUrlDisplay').textContent=u;var bx=document.getElementById('qrBox');if(!bx.firstChild)new QRCode(bx,{text:u,width:220,height:220,colorDark:"#1B2A4A",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});}
+function buildQR(){document.getElementById('roomCodeDisplay').textContent=S.roomCode;var b=window.location.origin+window.location.pathname.replace(/[^\/]*$/,'');var u=b+'index.html?room='+S.roomCode;document.getElementById('roomUrlDisplay').textContent=u;var bx=document.getElementById('qrBox');bx.innerHTML='';new QRCode(bx,{text:u,width:220,height:220,colorDark:"#1B2A4A",colorLight:"#ffffff",correctLevel:QRCode.CorrectLevel.M});}
 function refreshPeople(){
   var tb=document.getElementById('peopleBody');tb.innerHTML='';var n=Object.keys(S.studentData).length;
   document.getElementById('peopleEmpty').style.display=n?'none':'block';
@@ -992,10 +992,11 @@ function initStudent(rc){S.mode='student';S.roomCode=rc;
   var saved=loadS();
   if(saved&&saved.room===rc&&saved.name&&saved.screen!=='name'){S.studentName=saved.name;S.selected=saved.selected||[];S.ranked=saved.ranked||[];S.maxSelect=saved.maxSelect||10;S.currentLimit=saved.currentLimit||10;S.myTeam=saved.team||null;S.leaderEx=saved.leaderEx||null;
     connectP(function(){
-      if(saved.screen==='teamView'&&S.myTeam){showStudentTeamView();}
+      // Priority: if student has a team, go to team view
+      if(S.myTeam){showStudentTeamView();}
       else if(saved.screen==='teamChoose'){showTeamChoose();}
-      else if(saved.screen==='rank'&&S.ranked.length){show('rankScreen');buildRankList();}
       else if(saved.screen==='result'){showFinal();}
+      else if(saved.screen==='rank'&&S.ranked.length){show('rankScreen');buildRankList();}
       else{show('selectScreen');buildSelGrid();restoreSel();}
     });
   }else{show('studentNameScreen');}
@@ -1415,12 +1416,14 @@ function buildPoster(container,team,opts){
   container.appendChild(poster);
 }
 function _resizeImage(file,maxW,maxH,quality,cb){
+  var url=URL.createObjectURL(file);
   var img2=new Image();img2.onload=function(){
+    URL.revokeObjectURL(url);
     var w=img2.width,h=img2.height;if(w>maxW||h>maxH){var r=Math.min(maxW/w,maxH/h);w=Math.round(w*r);h=Math.round(h*r);}
     var c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(img2,0,0,w,h);
     cb(c.toDataURL('image/jpeg',quality));
-  };img2.onerror=function(){cb(null);};
-  var rd=new FileReader();rd.onload=function(ev){img2.src=ev.target.result;};rd.readAsDataURL(file);
+  };img2.onerror=function(){URL.revokeObjectURL(url);cb(null);};
+  img2.src=url;
 }
 function handleTeamPhoto(input,team,photoSec){
   if(!input.files||!input.files[0])return;
