@@ -551,7 +551,7 @@ function sbComputeTeamStatsFromDB(teamLeaderId,cb){
   sbFetch('students?team_id=eq.'+encodeURIComponent(teamFullId)+'&session_id=eq.'+SB_SID+'&select=id,name').then(function(r){return r.json();}).then(function(students){
     if(!students||!students.length){cb({cc:{},vc:{},total:0,members:[]});return;}
     var members=students.map(function(s){return s.name;});var ids=students.map(function(s){return s.id;});
-    sbFetch('value_mappings?student_id=in.('+ids.map(function(id){return encodeURIComponent(id);}).join(',')+')'+'&mapping_type=eq.ranked&session_id=eq.'+SB_SID).then(function(r2){return r2.json();}).then(function(rows){
+    sbFetch('value_mappings?student_id=in.('+ids.map(function(id){return encodeURIComponent(id);}).join(',')+')'+'&mapping_type=eq.ranked&session_id=eq.'+SB_SID+'&order_position=lte.5').then(function(r2){return r2.json();}).then(function(rows){
       var vc={};for(var i=0;i<rows.length;i++)vc[rows[i].value_id]=(vc[rows[i].value_id]||0)+1;
       var cc={};for(var ck in CATS){cc[ck]=0;for(var j=0;j<VALUES.length;j++)if(VALUES[j].cat===ck)cc[ck]+=(vc[VALUES[j].id]||0);}
       cb({cc:cc,vc:vc,total:students.length,members:members});
