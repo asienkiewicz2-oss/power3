@@ -124,7 +124,7 @@ CREATE TABLE value_mappings (
   student_id      text REFERENCES students(id) ON DELETE CASCADE,
   team_id         text REFERENCES teams(id) ON DELETE CASCADE,
   session_id      uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
-  mapping_type    text NOT NULL,               -- 'top10','ranked','team_ranked'
+  mapping_type    text NOT NULL,               -- 'ranked','team_ranked'
   order_position  integer NOT NULL DEFAULT 0,
   created_at      timestamptz NOT NULL DEFAULT now(),
   CONSTRAINT chk_entity CHECK (

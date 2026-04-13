@@ -469,8 +469,8 @@ function sbSaveAllStudents(){
         top10:sd.top10||[],ranked:sd.ranked||[],
         leader_ex:sd.leaderEx||null,phase:sd.phase||'selecting'
       });
-      if(sd.top10&&sd.top10.length)sbSaveValueMappings('student',pid,'top10',sd.top10);
       if(sd.ranked&&sd.ranked.length)sbSaveValueMappings('student',pid,'ranked',sd.ranked);
+      if(sd.leaderEx&&sd.leaderEx.vals&&sd.leaderEx.vals.length&&sd.team)sbSaveTeamValues(SB_SID+'_'+sd.team,sd.leaderEx.vals);
     }
   },2000);
 }
@@ -527,7 +527,6 @@ function sbLoadFullSession(cb){
               for(var pk in result.studentData){
                 var sd=result.studentData[pk];
                 if(pk===m.student_id||sd.deviceId===m.student_id){
-                  if(m.mapping_type==='top10'){if(!sd._vmTop10)sd._vmTop10=[];sd._vmTop10.push(m.value_id);}
                   if(m.mapping_type==='ranked'){if(!sd._vmRanked)sd._vmRanked=[];sd._vmRanked.push(m.value_id);}
                   break;
                 }
@@ -543,7 +542,6 @@ function sbLoadFullSession(cb){
           // Override JSONB arrays with ordered mapping data when available
           for(var sk in result.studentData){
             var ssd=result.studentData[sk];
-            if(ssd._vmTop10&&ssd._vmTop10.length){ssd.top10=ssd._vmTop10;}delete ssd._vmTop10;
             if(ssd._vmRanked&&ssd._vmRanked.length){ssd.ranked=ssd._vmRanked;}delete ssd._vmRanked;
           }
           cb(result);
@@ -563,8 +561,8 @@ function sbSaveStudentSelf(){
       team_id:teamId,top10:S.selected||[],ranked:S.ranked||[],
       leader_ex:S.leaderEx||null,phase:curScreen()==='teamView'?'teams':'selecting'
     });
-    if(S.selected&&S.selected.length)sbSaveValueMappings('student',DEVICE_ID,'top10',S.selected);
     if(S.ranked&&S.ranked.length)sbSaveValueMappings('student',DEVICE_ID,'ranked',S.ranked);
+    if(S.leaderEx&&S.leaderEx.vals&&S.leaderEx.vals.length&&S.myTeam)sbSaveTeamValues(SB_SID+'_'+S.myTeam,S.leaderEx.vals);
   },1500);
 }
 
@@ -704,7 +702,7 @@ function onSMsg(pid,d){
   else if(d.type==='ranked'){sd.ranked=d.values;sd.phase='waiting';}
   else if(d.type==='rerank'){sd.ranked=d.values;}
   else if(d.type==='team'){sd.team=d.team;sd.phase='teams';}
-  else if(d.type==='leaderEx'){sd.leaderEx=d;}
+  else if(d.type==='leaderEx'){sd.leaderEx=d;if(d.vals&&d.vals.length&&sd.team)sbSaveTeamValues(SB_SID+'_'+sd.team,d.vals);}
   else if(d.type==='teamPhoto'){try{localStorage.setItem('teamPhoto_'+d.team,d.data);}catch(ex){}sbSaveTeam(d.team,{photo:d.data});broadcast({type:'teamPhoto',team:d.team,data:d.data});}
   else if(d.type==='teamNotes'){try{localStorage.setItem('teamNotes_'+d.team,d.data);}catch(ex){}sbSaveTeam(d.team,{notes:d.data});broadcast({type:'teamNotes',team:d.team,data:d.data});}
   else if(d.type==='teamName'){try{if(d.name)localStorage.setItem('teamName_'+d.team,d.name);else localStorage.removeItem('teamName_'+d.team);}catch(ex){}sbSaveTeam(d.team,{custom_name:d.name||null});broadcast({type:'teamName',team:d.team,name:d.name});}
@@ -1025,7 +1023,7 @@ function onPMsg(d){
   else if(d.type==='final'){S.currentLimit=5;showFinal();saveS();}
   else if(d.type==='teamsOn'){S._teams=d.teams;if(!S.myTeam&&!document.getElementById('resultScreen').classList.contains('hidden')){showTeamChoose();}}
   else if(d.type==='teamsOff'){S._teams=null;}
-  else if(d.type==='setTeam'){S.myTeam=d.team;S.leaderEx=null;saveS();}
+  else if(d.type==='setTeam'){S.myTeam=d.team;S.leaderEx=null;saveS();if(d.team){showStudentTeamView();}else if(S._teams&&S._teams.length){showTeamChoose();}}
   else if(d.type==='nameError'){show('studentNameScreen');var err=document.getElementById('nameError');if(err)err.textContent=d.msg;var el=document.getElementById('studentName');if(el){el.classList.add('error');setTimeout(function(){el.classList.remove('error');},500);}}
   else if(d.type==='teamStats'){S._teamStats=d.stats;}
   else if(d.type==='teamPhoto'){try{localStorage.setItem('teamPhoto_'+d.team,d.data);}catch(ex){}}
@@ -1535,6 +1533,7 @@ function buildLeaderValuesExercise(container,team,readOnly){
     saveBtn.addEventListener('click',function(){
       if(ex.vals.length!==5){alert('Wybierz dok\u0142adnie 5 warto\u015bci');return;}
       ex.done=true;sendP({type:'leaderEx',dims:ex.dims,cats:ex.cats,vals:ex.vals,done:true});saveBtn.textContent='\u2713 Zapisano!';saveS();
+      if(S.myTeam)sbSaveTeamValues(SB_SID+'_'+S.myTeam,ex.vals);
     });
     pane.appendChild(saveBtn);
   }
