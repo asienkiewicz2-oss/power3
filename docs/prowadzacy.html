@@ -809,7 +809,7 @@ function startPresenter(){
     }
   });
 }
-var _iceConfig={config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'turn:openrelay.metered.ca:80',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443',username:'openrelayproject',credential:'openrelayproject'},{urls:'turn:openrelay.metered.ca:443?transport=tcp',username:'openrelayproject',credential:'openrelayproject'}]}};
+var _iceConfig={config:{iceServers:[{urls:'stun:stun.relay.metered.ca:80'},{urls:'turn:global.relay.metered.ca:80',username:'0d5270a5ec19e04ebe508ec2',credential:'BMo3feFR1QoV5MHO'},{urls:'turn:global.relay.metered.ca:80?transport=tcp',username:'0d5270a5ec19e04ebe508ec2',credential:'BMo3feFR1QoV5MHO'},{urls:'turn:global.relay.metered.ca:443',username:'0d5270a5ec19e04ebe508ec2',credential:'BMo3feFR1QoV5MHO'},{urls:'turns:global.relay.metered.ca:443?transport=tcp',username:'0d5270a5ec19e04ebe508ec2',credential:'BMo3feFR1QoV5MHO'}]}};
 function initPeer(){
   var pid='val-'+S.roomCode.toLowerCase();S.peer=new Peer(pid,_iceConfig);
   S.peer.on('connection',function(conn){S.connections.push(conn);conn.on('open',function(){conn.send({type:'setLimit',limit:S.currentLimit});if(S.teamsEnabled)conn.send({type:'teamsOn',teams:TEAMS.map(function(t){return{id:t.id,name:t.name,desc:t.desc};})});});conn.on('data',function(d){onSMsg(conn.peer,d);});conn.on('close',function(){S.connections=S.connections.filter(function(c){return c.peer!==conn.peer;});upAll();});upAll();});
