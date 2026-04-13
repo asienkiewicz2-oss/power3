@@ -379,8 +379,8 @@ var TEAMS=[
 
 
 // SUPABASE v2 — normalized DB (sessions, teams, students)
-var SB_URL='https://mtzljhhmnzhkovzbsonm.supabase.co';
-var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10emxqaGhtbnpoa292emJzb25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDc1MzEsImV4cCI6MjA5MTU4MzUzMX0.FHkMuRNvaPzFQvVsvzUFRl7oDU8EvOqqZAKplwRKzks';
+var SB_URL='https://ivyxyrqrfypovxswjkjg.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXh5cnFyZnlwb3Z4c3dqa2pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTQwNjMsImV4cCI6MjA5MTY3MDA2M30.JxFCY7X9-7AEIL2rsnP-hAeTREKpPm8B2jJSjLPdkuk';
 var SB_SID=null;var _sbTimer=null;var _sbStudentTimer=null;
 function sbFetch(p,o){o=o||{};var h={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};if(o.prefer)h['Prefer']=o.prefer;return fetch(SB_URL+'/rest/v1/'+p,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined});}
 
