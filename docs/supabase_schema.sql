@@ -39,10 +39,8 @@ CREATE TABLE students (
   name        text NOT NULL DEFAULT '',
   team_id     text REFERENCES teams(id) ON DELETE SET NULL,
   device_id   text NOT NULL DEFAULT '',       -- for reconnection
-  peer_id     text,                           -- current PeerJS peer id
   top10       jsonb DEFAULT '[]'::jsonb,
   ranked      jsonb DEFAULT '[]'::jsonb,
-  leader_ex   jsonb,
   phase       text NOT NULL DEFAULT 'selecting',
   last_seen   timestamptz DEFAULT now(),
   created_at  timestamptz NOT NULL DEFAULT now()
@@ -126,11 +124,7 @@ CREATE TABLE value_mappings (
   session_id      uuid NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
   mapping_type    text NOT NULL,               -- 'ranked','team_ranked'
   order_position  integer NOT NULL DEFAULT 0,
-  created_at      timestamptz NOT NULL DEFAULT now(),
-  CONSTRAINT chk_entity CHECK (
-    (student_id IS NOT NULL AND team_id IS NULL) OR
-    (student_id IS NULL AND team_id IS NOT NULL)
-  )
+  created_at      timestamptz NOT NULL DEFAULT now()
 );
 
 -- 7) Indexes
