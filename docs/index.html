@@ -1021,7 +1021,7 @@ function initStudent(rc){S.mode='student';S.roomCode=rc;
       else if(saved.screen==='rank'&&S.ranked.length){show('rankScreen');buildRankList();}
       else{show('selectScreen');buildSelGrid();restoreSel();}
     });
-  }else{show('studentNameScreen');}
+  }else{_clearTeamLS();show('studentNameScreen');}
 }
 function startStudentFlow(){
   var el=document.getElementById('studentName');var err=document.getElementById('nameError');var name=el.value.trim();
