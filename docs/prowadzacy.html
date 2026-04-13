@@ -76,6 +76,13 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
 .admin-tab.active{background:rgba(197,165,90,.12);color:var(--gold);border-color:var(--gold)}
 .admin-section{display:none}
 .admin-section.active{display:block}
+.badania-tabs{display:flex;gap:4px;margin-bottom:20px;flex-wrap:wrap}
+.badania-tab{background:var(--card);border:1px solid var(--border);color:var(--muted);padding:8px 18px;font-size:.82rem;font-weight:600;border-radius:8px;cursor:pointer;transition:all .15s}
+.badania-tab:hover{color:var(--text)}
+.badania-tab.active{background:rgba(197,165,90,.12);color:var(--gold);border-color:var(--gold)}
+.badania-section{display:none}
+.badania-section.active{display:block;text-align:center}
+.badania-img{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--border);margin-top:8px}
 #adminQR{text-align:center}
 #adminQR h3{font-size:1.3rem;color:var(--gold);margin-bottom:8px}
 #qrBox{display:inline-block;padding:16px;background:#fff;border-radius:16px;margin:16px 0}
@@ -318,6 +325,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   <button class="nav-btn" data-page="canvasPage" onclick="APP.nav('canvasPage')">Canvas</button>
   <button class="nav-btn" data-page="dashPage" onclick="APP.nav('dashPage')">Dashboard</button>
   <button class="nav-btn" data-page="adminPage" onclick="APP.nav('adminPage')">Panel Admina</button>
+  <button class="nav-btn" data-page="badaniaPage" onclick="APP.nav('badaniaPage')">Badania</button>
 </nav>
 
 <!-- PRESENTER PAGES -->
@@ -345,6 +353,24 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
     <div class="reduction-panel"><h3 style="font-size:1.1rem;color:var(--text);margin-bottom:4px">Ile wartości widzą studenci?</h3><div class="current-count" id="currentLimit">10</div><div style="font-size:.85rem;color:var(--muted);margin-bottom:16px" id="reduceHint"></div><button class="danger-btn" id="reduceBtn" onclick="APP.reduceByOne()">✂️ Redukuj o 1</button></div>
   </div>
   <div class="admin-section" id="adminTeamDetail"></div>
+</div>
+
+<div id="badaniaPage" class="p-screen hidden">
+  <div class="page-title">Badania</div>
+  <div class="badania-tabs">
+    <button class="badania-tab active" onclick="APP.badaniaTab(this,'bad01')">19 wartości</button>
+    <button class="badania-tab" onclick="APP.badaniaTab(this,'bad02')">Sinusoida</button>
+    <button class="badania-tab" onclick="APP.badaniaTab(this,'bad03')">Big Five × Wartości</button>
+    <button class="badania-tab" onclick="APP.badaniaTab(this,'bad07')">Authentic Leadership</button>
+    <button class="badania-tab" onclick="APP.badaniaTab(this,'bad08')">Wartości → Zachowania</button>
+    <button class="badania-tab" onclick="APP.badaniaTab(this,'bad09')">Hierarchia pankulturowa</button>
+  </div>
+  <div class="badania-section active" id="bad01"><img class="badania-img" src="badania/diagram_01_19valueswheel.png" alt="19 Values Wheel"></div>
+  <div class="badania-section" id="bad02"><img class="badania-img" src="badania/diagram_02_sinusoidal_pattern.png" alt="Sinusoidal Pattern"></div>
+  <div class="badania-section" id="bad03"><img class="badania-img" src="badania/diagram_03_bigfive_values_heatmap.png" alt="Big Five Values Heatmap"></div>
+  <div class="badania-section" id="bad07"><img class="badania-img" src="badania/diagram_07_authentic_leadership.png" alt="Authentic Leadership"></div>
+  <div class="badania-section" id="bad08"><img class="badania-img" src="badania/diagram_08_values_attitudes_behavior.png" alt="Values Attitudes Behavior"></div>
+  <div class="badania-section" id="bad09"><img class="badania-img" src="badania/diagram_09_pancultural_hierarchy.png" alt="Pancultural Hierarchy"></div>
 </div>
 
 <!-- Student screens (hidden, needed by JS references) -->
@@ -701,7 +727,7 @@ function clearPres(){try{localStorage.removeItem(PK);}catch(e){}}
 function nav(page){
   if(S.canvasRAF&&page!=='canvasPage'){cancelAnimationFrame(S.canvasRAF);S.canvasRAF=null;}
   if(page==='canvasPage'&&!S.canvasRAF){buildCanvas();}
-  var pages=['canvasPage','dashPage','adminPage'];
+  var pages=['canvasPage','dashPage','adminPage','badaniaPage'];
   for(var i=0;i<pages.length;i++)document.getElementById(pages[i]).classList.add('hidden');
   document.getElementById(page).classList.remove('hidden');
   var btns=document.querySelectorAll('.nav-btn');for(var j=0;j<btns.length;j++)btns[j].classList.toggle('active',btns[j].getAttribute('data-page')===page);
@@ -1419,7 +1445,8 @@ function buildLeaderValuesExercise(container,team,readOnly){
   container.appendChild(pane);
 }
 
-return{startPresenter:startPresenter,setMaxMembers:setMaxMembers,nav:nav,showScreen:show,adminTab:adminTab,toggleTeams:toggleTeams,reduceByOne:reduceByOne,onDashSlider:onDashSlider,newSession:newSession,joinManually:function(){},startStudentFlow:startStudentFlow,goToRanking:goToRanking};
+function badaniaTab(btn,id){var secs=document.querySelectorAll('.badania-section');for(var i=0;i<secs.length;i++)secs[i].classList.remove('active');document.getElementById(id).classList.add('active');var tabs=document.querySelectorAll('.badania-tab');for(var j=0;j<tabs.length;j++)tabs[j].classList.remove('active');btn.classList.add('active');}
+return{startPresenter:startPresenter,setMaxMembers:setMaxMembers,nav:nav,showScreen:show,adminTab:adminTab,badaniaTab:badaniaTab,toggleTeams:toggleTeams,reduceByOne:reduceByOne,onDashSlider:onDashSlider,newSession:newSession,joinManually:function(){},startStudentFlow:startStudentFlow,goToRanking:goToRanking};
 })();
 </script>
 </body></html>
