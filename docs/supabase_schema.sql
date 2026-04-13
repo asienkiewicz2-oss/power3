@@ -29,6 +29,8 @@ CREATE TABLE teams (
   custom_name text,
   photo       text,                           -- base64 data URL (resized)
   notes       text,
+  dim_order   jsonb DEFAULT NULL,             -- team-shared dimension ordering (array of keys)
+  cat_order   jsonb DEFAULT NULL,             -- team-shared category ordering (array of keys)
   created_at  timestamptz NOT NULL DEFAULT now()
 );
 
