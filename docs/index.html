@@ -1238,20 +1238,6 @@ function buildTeamStatsSection(container,ts,team,titleOverride){
   var leftCol=document.createElement('div');leftCol.className='zespol-left';
   var savedPhoto=null;try{savedPhoto=localStorage.getItem('teamPhoto_'+team.id);}catch(e){}
   if(savedPhoto){var pimg=document.createElement('img');pimg.className='team-photo-img';pimg.style.maxWidth='200px';pimg.src=savedPhoto;leftCol.appendChild(pimg);}
-  else{var phPl=document.createElement('div');phPl.className='team-photo-upload';phPl.style.margin='0 0 8px';
-  var lbl2=document.createElement('label');lbl2.innerHTML='\ud83d\udcf7 Zdj\u0119cie zespo\u0142u';
-  var fileIn2=document.createElement('input');fileIn2.type='file';fileIn2.accept='image/*';
-  fileIn2.addEventListener('change',function(){
-    if(!this.files||!this.files[0])return;
-    var f2=this.files[0];
-    _resizeImage(f2,800,600,0.7,function(data){
-      if(!data)return;
-      try{localStorage.setItem('teamPhoto_'+team.id,data);}catch(ex){}
-      if(typeof sendP==='function')sendP({type:'teamPhoto',team:team.id,data:data});
-      var ni=document.createElement('img');ni.className='team-photo-img';ni.style.maxWidth='200px';ni.src=data;
-      phPl.parentElement.insertBefore(ni,phPl);phPl.remove();
-    });
-  });lbl2.appendChild(fileIn2);phPl.appendChild(lbl2);leftCol.appendChild(phPl);}
   var pids=getTeamPids(team.id);
   if(pids.length){
     var pTitle=document.createElement('div');pTitle.style.cssText='color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px';pTitle.textContent='Cz\u0142onkowie ('+pids.length+')';leftCol.appendChild(pTitle);
