@@ -318,7 +318,7 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(
   <div class="page-title">Dashboard</div><div class="page-sub" id="dashSub"></div>
   <div class="dash-filters">
     <label>Top</label><span class="slider-val" id="dashSliderVal">5</span><input type="range" id="dashSliderRange" min="5" max="10" value="5" step="1" oninput="APP.onDashSlider(this.value)">
-    <div class="dim-filter" id="dimFilter"></div>
+    <div class="dim-filter" id="dimFilter" style="display:none"></div>
   </div>
   <div class="dash-grid" id="dashGrid"></div>
 </div>
@@ -363,9 +363,9 @@ var VALUES=[
 {id:50,en:"Broadminded",pl:"Otwartość umysłu",cat:"universalism",dim:"transcendence"},{id:51,en:"Equality",pl:"Równość",cat:"universalism",dim:"transcendence"},{id:52,en:"Unity with nature",pl:"Jedność z naturą",cat:"universalism",dim:"transcendence"},{id:53,en:"Protecting the environment",pl:"Ochrona środowiska",cat:"universalism",dim:"transcendence"},{id:54,en:"Inner harmony",pl:"Wewnętrzna harmonia",cat:"universalism",dim:"transcendence"},{id:55,en:"A world of beauty",pl:"Świat piękna",cat:"universalism",dim:"transcendence"},{id:56,en:"Social justice",pl:"Sprawiedliwość społeczna",cat:"universalism",dim:"transcendence"},{id:57,en:"A world at peace",pl:"Świat w pokoju",cat:"universalism",dim:"transcendence"},{id:58,en:"Wisdom",pl:"Mądrość",cat:"universalism",dim:"transcendence"}
 ];
 var CATS={"self-direction":{pl:"Samokierowanie",dim:"openness",color:"#E74C3C"},"stimulation":{pl:"Stymulacja",dim:"openness",color:"#FF6B35"},"hedonism":{pl:"Hedonizm",dim:"openness",color:"#F39C12"},"achievement":{pl:"Osiągnięcia",dim:"enhancement",color:"#E67E22"},"power":{pl:"Władza",dim:"enhancement",color:"#D35400"},"security":{pl:"Bezpieczeństwo",dim:"conservation",color:"#2980B9"},"conformity":{pl:"Konformizm",dim:"conservation",color:"#27AE60"},"tradition":{pl:"Tradycja",dim:"conservation",color:"#16A085"},"benevolence":{pl:"Życzliwość",dim:"transcendence",color:"#9B59B6"},"universalism":{pl:"Uniwersalizm",dim:"transcendence",color:"#3498DB"}};
-var CO=["self-direction","universalism","benevolence","tradition","conformity","security","power","achievement","hedonism","stimulation"];
+var CO=["self-direction","stimulation","hedonism","achievement","power","security","conformity","tradition","benevolence","universalism"];
 var DIMS={openness:{pl:"Otwartość na zmianę"},enhancement:{pl:"Umacnianie siebie"},conservation:{pl:"Zachowawczość"},transcendence:{pl:"Przekraczanie siebie"}};
-var DIM_ARCS=[{dim:"transcendence",from:1,to:3},{dim:"conservation",from:3,to:6},{dim:"enhancement",from:6,to:8},{dim:"openness",from:8,to:11}];
+var DIM_ARCS=[{dim:"openness",from:0,to:3},{dim:"enhancement",from:3,to:5},{dim:"conservation",from:5,to:8},{dim:"transcendence",from:8,to:10}];
 var DIM_CATS={openness:["self-direction","stimulation","hedonism"],enhancement:["achievement","power"],conservation:["security","conformity","tradition"],transcendence:["benevolence","universalism"]};
 var SC=["#E74C3C","#E67E22","#F39C12","#2ECC71","#1ABC9C","#3498DB","#9B59B6","#E91E63","#00BCD4","#FF7043","#AB47BC","#26A69A","#42A5F5","#FFA726","#EF5350","#66BB6A","#EC407A","#7E57C2","#29B6F6","#FFCA28"];
 var VDESC={1:"Wolność myśli i działania, możliwość samodzielnego decydowania",2:"Zainteresowanie wszystkim, odkrywanie, eksploracja",3:"Oryginalność, wyobraźnia, tworzenie nowych rzeczy",4:"Samodzielność, samowystarczalność, poleganie na sobie",5:"Swoboda w wyznaczaniu własnych celów życiowych",6:"Prawo do prywatnej sfery, do bycia samemu",7:"Wiara we własną wartość jako osoby",8:"Poszukiwanie przygód, ryzyko, odwaga działania",9:"Życie pełne wyzwań, nowości i zmian",10:"Życie pełne ekscytujących doświadczeń i emocji",11:"Czerpanie radości i satysfakcji z życia",12:"Pozwalanie sobie na przyjemności, robienie tego co sprawia radość",13:"Zaspokajanie pragnień i potrzeb",14:"Logiczne myślenie, zdolność analizy i wnioskowania",15:"Skuteczność w działaniu, zdolność realizacji celów",16:"Osiąganie celów, spełnianie ambicji",17:"Silne dążenie do sukcesu, pracowitość, determinacja",18:"Zdolność wpływania na ludzi i bieg wydarzeń",19:"Uznanie i szacunek ze strony innych za osiągnięcia",20:"Dobra materialne, zasoby finansowe, dostatek",21:"Prawo do przewodzenia, wydawania poleceń, bycia liderem",22:"Dbanie o to jak jest się postrzeganym przez innych",23:"Możliwość kontrolowania tego co robią inni ludzie",24:"Dobre zdrowie fizyczne i psychiczne",25:"Zapewnienie bezpieczeństwa i opieki najbliższym",26:"Stabilność i porządek w społeczeństwie",27:"Schludność, porządek w otoczeniu i w życiu",28:"Poczucie że się gdzieś przynależy, jest się częścią grupy",29:"Unikanie bycia dłużnym, odwzajemnianie gestów",30:"Ochrona kraju przed zagrożeniami",31:"Rzetelność, solidność w wypełnianiu obowiązków",32:"Wierność przyjaciołom i grupie, dotrzymywanie słowa",33:"Samokontrola, opieranie się pokusom, konsekwencja",34:"Uprzejmość i dobre maniery w kontaktach z ludźmi",35:"Okazywanie szacunku starszym, szanowanie ich mądrości",36:"Wypełnianie poleceń, podporządkowanie się regułom",37:"Skromność, brak potrzeby wywyższania się",38:"Dystans wobec spraw światowych, rezerwa",39:"Pielęgnowanie zwyczajów i praktyk kulturowych",40:"Głęboka wiara i oddanie sprawom duchowym",41:"Unikanie skrajności, poszukiwanie złotego środka",42:"Pogodzenie się z tym co przynosi życie",43:"Niesienie pomocy innym, wspieranie potrzebujących",44:"Gotowość do wybaczania, brak mściwości",45:"Prawdomówność, szczerość, transparentność",46:"Głębokie, bliskie relacje oparte na zaufaniu",47:"Poczucie celu i sensu w tym co się robi",48:"Głęboka bliskość emocjonalna i duchowa z partnerem",49:"Wewnętrzna harmonia duchowa, refleksja, medytacja",50:"Tolerancja dla odmiennych poglądów i ludzi",51:"Równe szanse i prawa dla wszystkich ludzi",52:"Poczucie jedności ze światem przyrody",53:"Dbanie o środowisko naturalne i ekologię",54:"Pokój wewnętrzny, pogodzenie się z samym sobą",55:"Docenianie piękna w naturze, sztuce i życiu",56:"Walka o sprawiedliwe traktowanie wszystkich",57:"Świat wolny od wojen i konfliktów",58:"Dojrzałe rozumienie życia, głęboka refleksja"};
@@ -379,8 +379,8 @@ var TEAMS=[
 
 
 // SUPABASE v2 — normalized DB (sessions, teams, students)
-var SB_URL='https://ivyxyrqrfypovxswjkjg.supabase.co';
-var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml2eXh5cnFyZnlwb3Z4c3dqa2pnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwOTQwNjMsImV4cCI6MjA5MTY3MDA2M30.JxFCY7X9-7AEIL2rsnP-hAeTREKpPm8B2jJSjLPdkuk';
+var SB_URL='https://mtzljhhmnzhkovzbsonm.supabase.co';
+var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im10emxqaGhtbnpoa292emJzb25tIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwMDc1MzEsImV4cCI6MjA5MTU4MzUzMX0.FHkMuRNvaPzFQvVsvzUFRl7oDU8EvOqqZAKplwRKzks';
 var SB_SID=null;var _sbTimer=null;var _sbStudentTimer=null;
 function sbFetch(p,o){o=o||{};var h={'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'};if(o.prefer)h['Prefer']=o.prefer;return fetch(SB_URL+'/rest/v1/'+p,{method:o.method||'GET',headers:h,body:o.body?JSON.stringify(o.body):undefined});}
 
@@ -723,9 +723,8 @@ function startPresenter(){
     }
   });
 }
-var _iceConfig={config:{iceServers:[{urls:'stun:stun.relay.metered.ca:80'},{urls:'turn:global.relay.metered.ca:80',username:'0d5270a5ec19e04ebe508ec2',credential:'BMo3feFR1QoV5MHO'},{urls:'turn:global.relay.metered.ca:80?transport=tcp',username:'0d5270a5ec19e04ebe508ec2',credential:'BMo3feFR1QoV5MHO'},{urls:'turn:global.relay.metered.ca:443',username:'0d5270a5ec19e04ebe508ec2',credential:'BMo3feFR1QoV5MHO'},{urls:'turns:global.relay.metered.ca:443?transport=tcp',username:'0d5270a5ec19e04ebe508ec2',credential:'BMo3feFR1QoV5MHO'}]}};
 function initPeer(){
-  var pid='val-'+S.roomCode.toLowerCase();S.peer=new Peer(pid,_iceConfig);
+  var pid='val-'+S.roomCode.toLowerCase();S.peer=new Peer(pid);
   S.peer.on('connection',function(conn){S.connections.push(conn);conn.on('open',function(){conn.send({type:'setLimit',limit:S.currentLimit});if(S.teamsEnabled)conn.send({type:'teamsOn',teams:TEAMS.map(function(t){return{id:t.id,name:t.name,desc:t.desc};})});});conn.on('data',function(d){onSMsg(conn.peer,d);});conn.on('close',function(){S.connections=S.connections.filter(function(c){return c.peer!==conn.peer;});upAll();});upAll();});
 }
 function onSMsg(pid,d){
@@ -890,7 +889,7 @@ function buildRing(svgId,ttId,lim,filterPids){
   var cc=getCounts(lim,filterPids);var maxC=1;for(var ck in CATS)if(cc[ck])maxC=Math.max(maxC,cc[ck]);
   // Dim filter
   var activeDims=filterPids?['openness','enhancement','conservation','transcendence']:S.dashDims;
-  for(var i=0;i<n;i++){var sa=-90+i*st,ea=sa+st;var cat=CO[i];var catDim=CATS[cat].dim;var dimActive=activeDims.indexOf(catDim)>=0;
+  for(var i=0;i<n;i++){var sa=-144+i*st,ea=sa+st;var cat=CO[i];var catDim=CATS[cat].dim;var dimActive=activeDims.indexOf(catDim)>=0;
     var c=cc[cat]||0;var inten=dimActive?Math.min(c/Math.max(maxC,1),1):0;
     var el=svgE('path',{d:arcP(cx,cy,r2,R,sa,ea),fill:hR('#C5A55A',dimActive?(0.12+inten*0.78):0.03),stroke:'rgba(255,255,255,'+(dimActive?'0.12':'0.04')+')','stroke-width':1.5,cursor:'pointer',opacity:dimActive?1:0.3});svg.appendChild(el);
     var ma=sa+st/2;var lr=R*0.78,lx=cx+lr*Math.cos(ma*Math.PI/180),ly=cy+lr*Math.sin(ma*Math.PI/180);
@@ -900,7 +899,7 @@ function buildRing(svgId,ttId,lim,filterPids){
     if(ttId)(function(ck2,seg2){seg2.addEventListener('mouseenter',function(e){showTT(e,ck2,lim,ttId,filterPids);});seg2.addEventListener('mouseleave',function(){document.getElementById(ttId).style.opacity='0';});})(cat,el);
   }
   var outerR=R+28;
-  for(var di=0;di<DIM_ARCS.length;di++){var dd=DIM_ARCS[di];var fa=-90+dd.from*st,ta=-90+dd.to*st;
+  for(var di=0;di<DIM_ARCS.length;di++){var dd=DIM_ARCS[di];var fa=-144+dd.from*st,ta=-144+dd.to*st;
     var dimOn=activeDims?activeDims.indexOf(dd.dim)>=0:true;
     var label=DIMS[dd.dim].pl.toUpperCase();
     var arcR=outerR;var startA,endA,midA=(fa+ta)/2;
@@ -959,31 +958,6 @@ function buildDash(lim){
   ringWrap.innerHTML='<svg id="dashRingSvg" viewBox="-60 -60 720 720"></svg><div class="svg-tooltip" id="dashRingTT"></div>';
   sec0.appendChild(ringWrap);grid.appendChild(sec0);
   setTimeout(function(){buildRing('dashRingSvg','dashRingTT',lim);},50);
-  // 2) Top values
-  var fvc={};for(var vid2 in vc){var v=valById(parseInt(vid2));if(v&&activeCats[v.cat])fvc[vid2]=vc[vid2];}
-  var sec1=document.createElement('div');sec1.className='poster-section';
-  sec1.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:12px">\ud83c\udfc6 Top 5 warto\u015bci</h3>';
-  var sorted=Object.keys(fvc).map(function(k){return{id:parseInt(k),c:fvc[k]};}).sort(function(a,b){return b.c-a.c;}).slice(0,5);
-  var maxV=sorted.length?sorted[0].c:1;
-  var barsWrap1=document.createElement('div');barsWrap1.style.maxWidth='600px';barsWrap1.style.margin='0 auto';
-  for(var si=0;si<sorted.length;si++){var sv=valById(sorted[si].id);barsWrap1.appendChild(mkBar(sv?sv.pl:'?',sorted[si].c,maxV,'#C5A55A'));}
-  sec1.appendChild(barsWrap1);grid.appendChild(sec1);
-  // 3) Categories
-  var sec2=document.createElement('div');sec2.className='poster-section';
-  sec2.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:12px">\ud83d\udcca Kategorie warto\u015bci</h3>';
-  var catArr=CO.filter(function(ck){return activeCats[ck];}).map(function(ck){return{key:ck,c:cc[ck]||0,label:CATS[ck].pl};}).sort(function(a,b){return b.c-a.c;});
-  var maxCat=catArr.length?catArr[0].c:1;
-  var barsWrap2=document.createElement('div');barsWrap2.style.maxWidth='600px';barsWrap2.style.margin='0 auto';
-  for(var ci2=0;ci2<catArr.length;ci2++){barsWrap2.appendChild(mkBar(catArr[ci2].label,catArr[ci2].c,maxCat,'#C5A55A'));}
-  sec2.appendChild(barsWrap2);grid.appendChild(sec2);
-  // 4) Dimensions
-  var sec3=document.createElement('div');sec3.className='poster-section';
-  sec3.innerHTML='<h3 style="color:var(--muted);font-size:.75rem;text-transform:uppercase;letter-spacing:.5px;text-align:center;margin-bottom:12px">\ud83d\udd2c Wymiary Schwartza</h3>';
-  var dimArr=S.dashDims.map(function(dk){var s=0;DIM_CATS[dk].forEach(function(ck){s+=(cc[ck]||0);});return{key:dk,c:s};}).sort(function(a,b){return b.c-a.c;});
-  var maxDim=dimArr.length?dimArr[0].c:1;
-  var barsWrap3=document.createElement('div');barsWrap3.style.maxWidth='600px';barsWrap3.style.margin='0 auto';
-  for(var dii=0;dii<dimArr.length;dii++){barsWrap3.appendChild(mkBar(DIMS[dimArr[dii].key].pl,dimArr[dii].c,maxDim,'#C5A55A'));}
-  sec3.appendChild(barsWrap3);grid.appendChild(sec3);
 }
 
 function mkCard(title){
@@ -1048,7 +1022,7 @@ function startStudentFlow(){
 function connectP(cb){
   var hid='val-'+S.roomCode.toLowerCase();
   if(S.peer){try{S.peer.destroy();}catch(e){}}
-  S.peer=new Peer(undefined,_iceConfig);
+  S.peer=new Peer();
   S._connOk=false;updateConnUI(false);
   S.peer.on('open',function(){
     S.conn=S.peer.connect(hid,{reliable:true});
@@ -1238,6 +1212,20 @@ function buildTeamStatsSection(container,ts,team,titleOverride){
   var leftCol=document.createElement('div');leftCol.className='zespol-left';
   var savedPhoto=null;try{savedPhoto=localStorage.getItem('teamPhoto_'+team.id);}catch(e){}
   if(savedPhoto){var pimg=document.createElement('img');pimg.className='team-photo-img';pimg.style.maxWidth='200px';pimg.src=savedPhoto;leftCol.appendChild(pimg);}
+  else{var phPl=document.createElement('div');phPl.className='team-photo-upload';phPl.style.margin='0 0 8px';
+  var lbl2=document.createElement('label');lbl2.innerHTML='\ud83d\udcf7 Zdj\u0119cie zespo\u0142u';
+  var fileIn2=document.createElement('input');fileIn2.type='file';fileIn2.accept='image/*';
+  fileIn2.addEventListener('change',function(){
+    if(!this.files||!this.files[0])return;
+    var f2=this.files[0];
+    _resizeImage(f2,800,600,0.7,function(data){
+      if(!data)return;
+      try{localStorage.setItem('teamPhoto_'+team.id,data);}catch(ex){}
+      if(typeof sendP==='function')sendP({type:'teamPhoto',team:team.id,data:data});
+      var ni=document.createElement('img');ni.className='team-photo-img';ni.style.maxWidth='200px';ni.src=data;
+      phPl.parentElement.insertBefore(ni,phPl);phPl.remove();
+    });
+  });lbl2.appendChild(fileIn2);phPl.appendChild(lbl2);leftCol.appendChild(phPl);}
   var pids=getTeamPids(team.id);
   if(pids.length){
     var pTitle=document.createElement('div');pTitle.style.cssText='color:var(--muted);font-size:.72rem;text-transform:uppercase;letter-spacing:.5px;margin:8px 0 4px';pTitle.textContent='Cz\u0142onkowie ('+pids.length+')';leftCol.appendChild(pTitle);
@@ -1504,7 +1492,7 @@ function buildRingFromStats(svgId,ts){
   var svg=document.getElementById(svgId);if(!svg)return;svg.innerHTML='';var cx=300,cy=300,R=240,r2=80,n=CO.length,st=360/n;
   svg.appendChild(svgE('circle',{cx:cx,cy:cy,r:R+2,fill:'none',stroke:'rgba(255,255,255,0.08)','stroke-width':1}));
   var cc=ts.cc;var maxC=1;for(var ck in CATS)if(cc[ck])maxC=Math.max(maxC,cc[ck]);
-  for(var i=0;i<n;i++){var sa=-90+i*st,ea=sa+st;var cat=CO[i];
+  for(var i=0;i<n;i++){var sa=-144+i*st,ea=sa+st;var cat=CO[i];
     var c=cc[cat]||0;var inten=Math.min(c/Math.max(maxC,1),1);
     svg.appendChild(svgE('path',{d:arcP(cx,cy,r2,R,sa,ea),fill:hR('#C5A55A',0.12+inten*0.78),stroke:'rgba(255,255,255,0.12)','stroke-width':1.5}));
     var ma=sa+st/2;var lr=R*0.78,lx=cx+lr*Math.cos(ma*Math.PI/180),ly=cy+lr*Math.sin(ma*Math.PI/180);
@@ -1513,7 +1501,7 @@ function buildRingFromStats(svgId,ts){
     var cntT=svgE('text',{x:ccx2,y:ccy2,fill:'#fff','font-size':'24','font-weight':'900','text-anchor':'middle','dominant-baseline':'middle','pointer-events':'none',opacity:'0.9'});cntT.textContent=c>0?c:'';svg.appendChild(cntT);
   }
   var outerR=R+28;var defs2=svgE('defs',{});svg.appendChild(defs2);
-  for(var di=0;di<DIM_ARCS.length;di++){var dd=DIM_ARCS[di];var fa=-90+dd.from*st,ta=-90+dd.to*st;var midA=(fa+ta)/2;
+  for(var di=0;di<DIM_ARCS.length;di++){var dd=DIM_ARCS[di];var fa=-144+dd.from*st,ta=-144+dd.to*st;var midA=(fa+ta)/2;
     var label=DIMS[dd.dim].pl.toUpperCase();var arcR=outerR;
     var needFlip=(midA>90&&midA<270);var startA=needFlip?ta:fa,endA=needFlip?fa:ta;
     var pathId='stArc_'+svgId+'_'+di;
